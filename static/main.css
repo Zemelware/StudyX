@@ -1,3 +1,25 @@
-.nav {
-  margin-left: 30px;
+/* Chat body styles */
+#chat-body {
+  height: 80vh;
+  overflow-y: auto;
+}
+
+/* User message styles */
+.user-message {
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+/* AI message styles */
+.ai-message {
+  background-color: #f8f9fa;
+  color: #343a40;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  text-align: left;
 }
