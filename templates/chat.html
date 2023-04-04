@@ -5,54 +5,30 @@
       <h2 class="card-title mb-0">Interactive Quiz Chat</h2>
     </div>
     <div class="card-body" id="chat-body">
-      <div class="row">
-        <div class="col-6">
-          <div class="ai-message">Hello! How can I assist you today?</div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-6 offset-6">
-          <div class="user-message">I need help with my account.</div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-6">
-          <div class="ai-message">Sure thing. What's your account number?</div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-6 offset-6">
-          <div class="user-message">123456789</div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-6">
-          <div class="ai-message">Got it. What's your question?</div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-6 offset-6">
-          <div class="user-message">How do I update my billing address?</div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-6">
-          <div class="ai-message">
-            You can update your billing address by logging into your account and
-            going to the "Billing" section. Let me know if you need further
-            assistance.
+      {% for message in messages %}
+        {% if message["sender"] == "user" %}
+          <div class="row">
+            <div class="col-6 offset-6">
+              <div class="user-message">{{ message["message"] }}</div>
+            </div>
           </div>
-        </div>
-      </div>
+        {% else %}
+          <div class="row">
+            <div class="col-6">
+              <div class="ai-message">{{ message["message"] }}</div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
     </div>
     <div class="card-footer">
-      <form action="#" method="POST" class="input-group">
+      <form action="#" method="POST" class="input-group" autocomplete="off">
         <input
           type="text"
+          name="message"
           class="form-control"
           placeholder="Type your message here"
         />
-        <!-- <button class="btn btn-primary">Send</button> -->
         <input type="submit" value="Send" class="btn btn-primary" />
       </form>
     </div>
