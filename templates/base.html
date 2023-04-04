@@ -17,16 +17,21 @@
     />
   </head>
   <body>
-    <div class="row">
-      <nav class="nav nav-pills flex-column col-2 card bg-body-tertiary">
+    <div class="row container mx-4">
+      <nav class="nav nav-pills col-2 card bg-body-tertiary">
         <div class="card-body">
-          <a class="nav-link active" aria-current="page" href="#">Active</a>
+          <a
+            class="nav-link active"
+            aria-current="page"
+            href="/interactive-quiz"
+            >Interactive Quiz
+          </a>
           <a class="nav-link" href="#">Link</a>
           <a class="nav-link" href="#">Link</a>
         </div>
       </nav>
 
-      <div class="col d-flex justify-content-center">
+      <div class="col">
         {% block content %}{% endblock %}
       </div>
     </div>
