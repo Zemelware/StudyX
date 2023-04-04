@@ -6,22 +6,22 @@
     </div>
     <div class="card-body" id="chat-body">
       {% for message in messages %}
-        {% if message["sender"] == "user" %}
+        {% if message["role"] == "user" %}
           <div class="row">
             <div class="col-6 offset-6">
-              <div class="user-message">{{ message["message"] }}</div>
+              <div class="user-message">{{ message["content"] }}</div>
             </div>
           </div>
         {% else %}
           <div class="row">
             <div class="col-6">
-              <div class="ai-message">{{ message["message"] }}</div>
+              <div class="ai-message">{{ message["content"] }}</div>
             </div>
           </div>
         {% endif %}
       {% endfor %}
     </div>
-    <div class="card-footer">
+    <div class="m-2">
       <form action="#" method="POST" class="input-group" autocomplete="off">
         <input
           type="text"
