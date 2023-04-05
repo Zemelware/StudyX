@@ -1,8 +1,8 @@
 import os
 
 import openai
-from flask import Flask, redirect, render_template, request, session, url_for
 from dotenv import load_dotenv
+from flask import Flask, redirect, render_template, request, session, url_for
 
 load_dotenv()
 
@@ -13,6 +13,8 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 chat_history = []
+
+# TODO: format backtick as inline code and triple backtick as code block
 
 
 def get_ai_response(message):
@@ -37,16 +39,26 @@ def get_ai_response(message):
 
     return response_text
 
-# TODO: add message support for multiple lines
+
+@app.route("/")
+@app.route("/transcript")
+@app.route("/transcript/")
+def transcript():
+    request.path
+    return render_template("transcript.html")
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/notes")
+@app.route("/notes/")
+def notes():
+    return render_template("notes.html")
+
+
 @app.route("/interactive-quiz", methods=["GET", "POST"])
 @app.route("/interactive-quiz/", methods=["GET", "POST"])
 def chat():
     global chat_history
 
-    # TODO: make sure that the user has to wait for the AI to respond before they can send another message
     if request.method == "POST":
         # First retrieve the message from the form
         message = request.form["message"]

@@ -16,22 +16,36 @@
       href="{{ url_for('static', filename='main.css') }}"
     />
   </head>
-  <body>
-    <div class="row container mx-4">
+  <body class="my-2">
+    <div class="row mx-4">
+      <!-- This macro will check if the user is on the URL associated with the given endpoint. If yes, it returns the "active" class -->
+      {% macro is_active(endpoint) %}
+        {% if request.path == url_for(endpoint) %}
+          active
+        {% endif %}
+      {% endmacro %}
+
       <nav class="nav nav-pills col-2 card bg-body-tertiary">
         <div class="card-body">
           <a
-            class="nav-link active"
-            aria-current="page"
-            href="/interactive-quiz"
+            class="nav-link {{ is_active('transcript') }}"
+            href="{{ url_for('transcript') }}"
+            >Lesson Transcript</a
+          >
+          <a
+            class="nav-link {{ is_active('notes') }}"
+            href="{{ url_for('notes') }}"
+            >Lesson Notes</a
+          >
+          <a
+            class="nav-link {{ is_active('chat') }}"
+            href="{{ url_for('chat') }}"
             >Interactive Quiz
           </a>
-          <a class="nav-link" href="#">Lesson Transcript</a>
-          <a class="nav-link" href="#">Lesson Notes</a>
         </div>
       </nav>
 
-      <div class="col">
+      <div class="col" id="main-content">
         {% block content %}{% endblock %}
       </div>
     </div>
