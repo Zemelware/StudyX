@@ -1,16 +1,24 @@
 body {
   margin-top: 10px;
+  margin-bottom: 10px;
 }
 
-/* Chat body styles */
+#main-content {
+  height: 98vh;
+}
+
+#chat-window {
+  height: 100%;
+}
+
 #chat-body {
-  height: 80vh;
   overflow-y: auto;
 }
 
 .user-message {
   background-color: #007bff;
   color: #fff;
+  float: right; /* align to the right side of the screen */
 }
 
 .ai-message {
@@ -22,10 +30,12 @@ body {
 .ai-message {
   margin-bottom: 5px;
   border-radius: 10px;
-  padding: 7px;
+  padding: 7px 10px;
   white-space: pre-wrap;
+  display: inline-block;
 }
 
 textarea[name="message"] {
+  max-height: 300px;
   resize: none;
 }
