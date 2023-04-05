@@ -25,3 +25,7 @@ body {
   padding: 7px;
   white-space: pre-wrap;
 }
+
+textarea[name="message"] {
+  resize: none;
+}
