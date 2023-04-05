@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="card">
+  <div class="card" id="chat-window">
     <div class="card-header">
       <h2 class="card-title mb-0">Interactive Quiz Chat</h2>
     </div>
@@ -8,21 +8,27 @@
       {% for message in messages %}
         {% if message["role"] == "user" %}
           <div class="row">
-            <div class="col-6 offset-6">
-              <div class="user-message">{{ message["content"] }}</div>
+            <div class="col-7 offset-5">
+              <p class="user-message">{{ message["content"] }}</p>
             </div>
           </div>
         {% else %}
           <div class="row">
-            <div class="col-6">
-              <div class="ai-message">{{ message["content"] }}</div>
+            <div class="col-7">
+              <p class="ai-message">{{ message["content"] }}</p>
             </div>
           </div>
         {% endif %}
       {% endfor %}
     </div>
-    <div class="m-2">
-      <form action="#" method="POST" class="input-group" autocomplete="off">
+    <div class="m-3">
+      <form
+        action="#"
+        method="POST"
+        class="input-group"
+        id="message-form"
+        autocomplete="off"
+      >
         <textarea
           name="message"
           autocomplete="off"
