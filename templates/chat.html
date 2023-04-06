@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="card" id="chat-window">
+  <div class="main-content card col-8" id="chat-window">
     <div class="card-header">
       <h2 class="card-title mb-0">Interactive Quiz Chat</h2>
     </div>
@@ -8,13 +8,13 @@
       {% for message in messages %}
         {% if message["role"] == "user" %}
           <div class="row">
-            <div class="col-7 offset-5">
+            <div class="col-8 offset-4">
               <p class="user-message">{{ message["content"] }}</p>
             </div>
           </div>
         {% else %}
           <div class="row">
-            <div class="col-7">
+            <div class="col-8">
               <p class="ai-message">{{ message["content"] }}</p>
             </div>
           </div>
@@ -37,8 +37,34 @@
           rows="1"
           autofocus
         ></textarea>
-        <input type="submit" value="Send" class="btn btn-primary" />
+        <button class="btn btn-primary">Send</button>
       </form>
     </div>
+  </div>
+  <div class="dropdown colide-menu-1">
+    <button
+      class="btn btn-secondary dropdown-toggle"
+      type="button"
+      data-bs-toggle="dropdown"
+    >
+      Select model
+    </button>
+    <ul class="dropdown-menu">
+      <li>
+        <a class="dropdown-item" href="{{ url_for('quiz', model='test') }}"
+          >Test mode</a
+        >
+      </li>
+      <li>
+        <a class="dropdown-item" href="{{ url_for('quiz', model='gpt-3.5') }}"
+          >GPT-3.5</a
+        >
+      </li>
+      <li>
+        <a class="dropdown-item" href="{{ url_for('quiz', model='gpt-4') }}"
+          >GPT-4</a
+        >
+      </li>
+    </ul>
   </div>
 {% endblock %}

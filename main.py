@@ -56,8 +56,17 @@ def notes():
 
 @app.route("/interactive-quiz", methods=["GET", "POST"])
 @app.route("/interactive-quiz/", methods=["GET", "POST"])
-def chat():
-    global chat_history
+def quiz():
+    # global chat_history
+
+    model = "test"
+    if "model" in session:
+        # TODO: figure out how to set the model in the the URL
+        pass
+    else:
+        # model = request.args.get("mode", default="gpt-3.5")
+        # session["mode"] = mode
+        pass
 
     if request.method == "POST":
         # First retrieve the message from the form
@@ -70,7 +79,15 @@ def chat():
         chat_history.append({"role": "user", "content": message})
 
         # Get the AI response
-        ai_response = get_ai_response(message)
+        if model == "gpt-3.5":
+            ai_response = ai_chat_response(chat_history, "gpt-3.5-turbo")
+        elif model == "gpt-4":
+            ai_response = ai_chat_response(chat_history, "gpt-4")
+        elif model == "test":
+            ai_response = "This is a test message."
+        # else:
+        #     model = "GPT-3.5"
+
         # Add the AI response to the chat history
         chat_history.append({"role": "assistant", "content": ai_response})
 
