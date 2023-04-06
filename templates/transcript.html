@@ -1,4 +1,22 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Lesson Transcript</h1>
+  <div class="main-content col-8">
+    <h1>Lesson Transcript</h1>
+    <form action="#" method="POST" id="transcript-form">
+      <textarea name="transcript" autocomplete="off" class="form-control">
+        {{ transcript }}
+      </textarea
+      >
+    </form>
+  </div>
+  <div class="col side-menu">
+    <p>[audio player will show here]</p>
+    <!-- <audio src="./file.mp3"></audio> -->
+    <button class="btn btn-primary mb-2" form="transcript-form">
+      Create transcript
+    </button>
+    <button class="btn btn-secondary" form="transcript-form">
+      Create notes
+    </button>
+  </div>
 {% endblock %}
