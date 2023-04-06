@@ -17,7 +17,7 @@
     />
   </head>
   <body class="my-2">
-    <div class="row mx-4">
+    <div class="row mx-4 g-0 justify-content-center">
       <!-- This macro will check if the user is on the URL associated with the given endpoint. If yes, it returns the "active" class -->
       {% macro is_active(endpoint) %}
         {% if request.path == url_for(endpoint) %}
@@ -25,6 +25,7 @@
         {% endif %}
       {% endmacro %}
 
+      <!-- TODO: The gutter is making the buttons in the nav a bit smaller. fix this -->
       <nav class="nav nav-pills col-2 card bg-body-tertiary">
         <div class="card-body">
           <a
@@ -38,16 +39,14 @@
             >Lesson Notes</a
           >
           <a
-            class="nav-link {{ is_active('chat') }}"
-            href="{{ url_for('chat') }}"
+            class="nav-link {{ is_active('quiz') }}"
+            href="{{ url_for('quiz') }}"
             >Interactive Quiz
           </a>
         </div>
       </nav>
 
-      <div class="col" id="main-content">
-        {% block content %}{% endblock %}
-      </div>
+      {% block content %}{% endblock %}
     </div>
 
     <script
