@@ -3,12 +3,13 @@ body {
   margin-bottom: 10px;
 }
 
-#main-content {
+.main-content {
   height: 98vh;
+  margin: 0 15px;
 }
 
-#chat-window {
-  height: 100%;
+.side-menu {
+  margin-top: 55px;
 }
 
 #chat-body {
@@ -28,14 +29,23 @@ body {
 
 .user-message,
 .ai-message {
-  margin-bottom: 5px;
+  margin-bottom: 7px;
   border-radius: 10px;
   padding: 7px 10px;
   white-space: pre-wrap;
   display: inline-block;
 }
 
+textarea {
+  resize: none;
+}
+
+textarea[name="transcript"],
+textarea[name="notes"] {
+  height: 91vh;
+  /* Figure out how to make this the height of its container */
+}
+
 textarea[name="message"] {
   max-height: 300px;
-  resize: none;
 }
