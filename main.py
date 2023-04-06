@@ -6,8 +6,7 @@ from flask import Flask, redirect, render_template, request, session, url_for
 
 load_dotenv()
 
-API_KEY = os.getenv("OPENAI_API_KEY")
-openai.api_key = API_KEY
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -17,14 +16,43 @@ chat_history = []
 # TODO: format backtick as inline code and triple backtick as code block
 
 
-def get_ai_response(message):
+def transcribe_audio(file):
+    # transcript = openai.Audio.transcribe(
+    #     "whisper-1", file, prompt="The transcript is a school lecture.", response_format="text")
+    transcript = "This is a test transcript."
+    return transcript
+
+
+def transcript_to_notes(transcript, model):
+    # TODO: add support for notes with headings and stuff (maybe using markdown)
+
+    # response = openai.ChatCompletion.create(
+    #     model=model,
+    #     messages=[
+    #         {"role": "system", "content": "You are a note taker that takes notes based on a transcript from a school lecture.\
+    #                                        Make the notes concise but make sure you also get down all the important information.\
+    #                                        Also, keep in mind that the transcript may contain text from different people speaking.\
+    #                                        Don't type anything else but the notes."},
+    #         {"role": "user", "content": "I am going to give you a transcript to create notes for. Type 'Y' if you're ready."},
+    #         {"role": "assistant", "content": "Y"},
+    #         {"role": "user", "content": transcript}
+    #     ]
+    # )
+    # notes = response["choices"][0]["message"]["content"]
+    # TODO: also check the finish reason to make sure its valid
+
+    notes = "These are test notes.\n- This\n- Is\n- A\n- Test"
+
+    return notes
+
+
+def ai_chat_response(message_history, model):
     # Make an API call to OpenAI to get the AI response
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model=model,
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
-            *chat_history,
-            {"role": "user", "content": message}
+            *message_history
         ]
     )
     response_text = response["choices"][0]["message"]["content"]
@@ -40,18 +68,53 @@ def get_ai_response(message):
     return response_text
 
 
-@app.route("/")
-@app.route("/transcript")
-@app.route("/transcript/")
+@app.route("/", methods=["GET", "POST"])
+@app.route("/transcript", methods=["GET", "POST"])
+@app.route("/transcript/", methods=["GET", "POST"])
 def transcript():
-    request.path
-    return render_template("transcript.html")
+    if request.method == "POST":
+        # TODO: see how to use the action attribute of form (and if it's necessary to use)
+        button = 2
+        # TODO: somehow check which button is being pressed
+        if button == 1:
+            # Create transcript button
+            # TODO: figure out how to retrieve audio
+            audio = ""
+            transcript = transcribe_audio(audio)
+
+            session["transcript"] = transcript
+
+            return redirect(url_for("transcript"))
+        else:
+            # Send notes button
+            transcript = request.form["transcript"]
+            # TODO: create dropdown for user to select the model
+            notes = transcript_to_notes(transcript, "gpt-3.5-turbo")
+
+            session["notes"] = notes
+
+            return redirect(url_for("notes"))
+    else:
+        if "transcript" in session:
+            transcript = session["transcript"]
+        else:
+            transcript = ""
+
+        return render_template("transcript.html", transcript=transcript)
 
 
-@app.route("/notes")
-@app.route("/notes/")
+@app.route("/notes", methods=["GET", "POST"])
+@app.route("/notes/", methods=["GET", "POST"])
 def notes():
-    return render_template("notes.html")
+    if request.method == "POST":
+        pass
+    else:
+        if "notes" in session:
+            notes = session["notes"]
+        else:
+            notes = ""
+
+        return render_template("notes.html", notes=notes)
 
 
 @app.route("/interactive-quiz", methods=["GET", "POST"])
@@ -91,11 +154,9 @@ def quiz():
         # Add the AI response to the chat history
         chat_history.append({"role": "assistant", "content": ai_response})
 
-        print(chat_history)
-
         session["chat_history"] = chat_history
 
-        # Redirect to the chat page to prevent form resubmission if the user refreshes the page
+        # Redirect to the chat page
         return redirect(url_for("chat"))
     else:
         if "chat_history" in session:
