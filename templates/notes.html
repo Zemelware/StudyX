@@ -1,4 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Lesson Notes</h1>
+  <div class="main-content col-8">
+    <h1>Lesson Notes</h1>
+    <form action="#" method="POST" id="notes-form">
+      <textarea name="notes" autocomplete="off" class="form-control">
+        {{ notes }}
+      </textarea
+      >
+    </form>
+  </div>
+  <div class="col side-menu">
+    <button class="btn btn-primary" form="notes-form">Start Quiz</button>
+  </div>
 {% endblock %}
