@@ -1,17 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="main-content col-8">
+  <div class="main-content col-8 d-flex flex-column">
     <h1>Lesson Transcript</h1>
-    <form action="#" method="POST" id="transcript-form">
-      <textarea name="transcript" autocomplete="off" class="form-control">
+    <audio
+      src="{{ url_for('static', filename='test_audio.mp3') }}"
+      controls
+      class="mb-2"
+    ></audio>
+    <form
+      action="#"
+      method="POST"
+      id="transcript-form"
+      class="d-flex flex-column flex-grow-1"
+    >
+      <textarea
+        name="transcript"
+        autocomplete="off"
+        class="form-control flex-grow-1"
+      >
         {{ transcript }}
       </textarea
       >
     </form>
   </div>
   <div class="col side-menu">
-    <p>[audio player will show here]</p>
-    <!-- <audio src="./file.mp3"></audio> -->
     <button
       class="btn btn-primary mb-2"
       form="transcript-form"
