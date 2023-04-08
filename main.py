@@ -72,30 +72,29 @@ def ai_chat_response(message_history, model):
 @app.route("/transcript", methods=["GET", "POST"])
 @app.route("/transcript/", methods=["GET", "POST"])
 def transcript():
+    # TODO: if the user edits the transcript, then update the variable and the session variable
+
     if request.method == "POST":
+        # This code will run when the user clicks "Create transcript" or they edit the transcript
+
+        # Check if the user clicked the "Create transcript" button
+        transcript = request.form["transcript"]
+        create_transcript_clicked = "create-transcript" in request.form
+
         # TODO: see how to use the action attribute of form (and if it's necessary to use)
-        if "create-transcript" in request.form:
+
+        if create_transcript_clicked:
             # TODO: figure out how to retrieve audio
             audio = ""
+            # TODO: handle if audio is empty (give a warning to the user)
             transcript = transcribe_audio(audio)
 
-            session["transcript"] = transcript
+        session["transcript"] = transcript
 
-            return redirect(url_for("transcript"))
-        elif "create-notes" in request.form:
-            transcript = request.form["transcript"]
-            # TODO: create dropdown for user to select the model
-            notes = transcript_to_notes(transcript, "gpt-3.5-turbo")
-
-            session["notes"] = notes
-
-            return redirect(url_for("notes"))
+        return redirect(url_for("transcript"))
     else:
-        if "transcript" in session:
-            transcript = session["transcript"]
-        else:
-            transcript = ""
-
+        # Load the transcript from the session (default to empty string if it doesn't exist)
+        transcript = session.get("transcript", "")
         return render_template("transcript.html", transcript=transcript)
 
 
@@ -103,13 +102,18 @@ def transcript():
 @app.route("/notes/", methods=["GET", "POST"])
 def notes():
     if request.method == "POST":
-        pass
-    else:
-        if "notes" in session:
-            notes = session["notes"]
-        else:
-            notes = ""
+        # TODO: handle if transcript doesn't exist (give a warning to the user)
+        transcript = session["transcript"]
 
+        # TODO: create dropdown for user to select the model
+        notes = transcript_to_notes(transcript, "gpt-3.5-turbo")
+
+        session["notes"] = notes
+
+        return redirect(url_for("notes"))
+    else:
+        # Load the notes from the session (default to empty string if they don't exist)
+        notes = session.get("notes", "")
         return render_template("notes.html", notes=notes)
 
 
@@ -121,7 +125,7 @@ def quiz():
     if "model" in session:
         model = session["model"]
     else:
-        model = "gpt-3.5"
+        model = "GPT-3.5"
 
     if request.method == "POST":
         if "message" in request.form:
@@ -134,11 +138,11 @@ def quiz():
             chat_history.append({"role": "user", "content": message})
 
             # Get the AI response
-            if model == "gpt-3.5":
+            if model == "GPT-3.5":
                 ai_response = ai_chat_response(chat_history, "gpt-3.5-turbo")
-            elif model == "gpt-4":
+            elif model == "GPT-4":
                 ai_response = ai_chat_response(chat_history, "gpt-4")
-            elif model == "test mode":
+            elif model == "Test mode":
                 ai_response = "This is a test message."
 
             # Add the AI response to the chat history
@@ -154,12 +158,8 @@ def quiz():
         # Redirect to the chat page
         return redirect(url_for("quiz"))
     else:
-        if "chat_history" in session:
-            # If the user has already been chatting with the AI, then we want to retrieve the chat history from the session
-            chat_history = session["chat_history"]
-        else:
-            # Otherwise, start with an empty chat history
-            chat_history = []
+        # Load the chat history from the session (default to empty list if it doesn't exist)
+        chat_history = session.get("chat_history", [])
 
         # Render the quiz page with the chat history
         return render_template("quiz.html", messages=chat_history, selected_model=model)
