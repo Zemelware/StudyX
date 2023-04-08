@@ -74,10 +74,7 @@ def ai_chat_response(message_history, model):
 def transcript():
     if request.method == "POST":
         # TODO: see how to use the action attribute of form (and if it's necessary to use)
-        button = 2
-        # TODO: somehow check which button is being pressed
-        if button == 1:
-            # Create transcript button
+        if "create-transcript" in request.form:
             # TODO: figure out how to retrieve audio
             audio = ""
             transcript = transcribe_audio(audio)
@@ -85,8 +82,7 @@ def transcript():
             session["transcript"] = transcript
 
             return redirect(url_for("transcript"))
-        else:
-            # Send notes button
+        elif "create-notes" in request.form:
             transcript = request.form["transcript"]
             # TODO: create dropdown for user to select the model
             notes = transcript_to_notes(transcript, "gpt-3.5-turbo")
