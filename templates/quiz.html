@@ -47,17 +47,20 @@
       {% endif %}
     {% endmacro %}
 
-    <form action="{{ url_for('quiz') }}" method="POST">
+    <form action="{{ url_for('quiz') }}" method="POST" class="mb-2">
       <label for="select-quiz-model">Select a model</label>
       <select name="model" id="select-quiz-model" onchange="this.form.submit()">
-        <option value="gpt-3.5" {{ is_selected_model('gpt-3.5') }}>
-          gpt-3.5
+        <option value="GPT-3.5" {{ is_selected_model('GPT-3.5') }}>
+          GPT-3.5
         </option>
-        <option value="gpt-4" {{ is_selected_model('gpt-4') }}>gpt-4</option>
-        <option value="test mode" {{ is_selected_model('test mode') }}>
-          test mode
+        <option value="GPT-4" {{ is_selected_model('GPT-4') }}>GPT-4</option>
+        <option value="Test mode" {{ is_selected_model('Test mode') }}>
+          Test mode
         </option>
       </select>
+    </form>
+    <form action="#" method="POST" id="quiz-form">
+      <button class="btn btn-primary" form="quiz-form">Start quiz</button>
     </form>
   </div>
 {% endblock %}
