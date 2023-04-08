@@ -103,10 +103,16 @@ def transcript():
 def notes():
     if request.method == "POST":
         # TODO: handle if transcript doesn't exist (give a warning to the user)
-        transcript = session["transcript"]
+        # This code will run when the user clicks "Create notes" or they edit the notes textarea
 
-        # TODO: create dropdown for user to select the model
-        notes = transcript_to_notes(transcript, "gpt-3.5-turbo")
+        # Check if the user clicked the "Create notes" button
+        notes = request.form["notes"]
+        create_notes_clicked = "create-notes" in request.form
+
+        if create_notes_clicked:
+            transcript = session["transcript"]
+            # TODO: create dropdown for user to select the model
+            notes = transcript_to_notes(transcript, "gpt-3.5-turbo")
 
         session["notes"] = notes
 

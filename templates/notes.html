@@ -12,6 +12,7 @@
         name="notes"
         autocomplete="off"
         class="form-control flex-grow-1"
+        onchange="this.form.submit()"
       >
         {{ notes }}
       </textarea
@@ -19,6 +20,8 @@
     </form>
   </div>
   <div class="col side-menu">
-    <button class="btn btn-primary" form="notes-form">Create notes</button>
+    <button class="btn btn-primary" form="notes-form" name="create-notes">
+      Create notes
+    </button>
   </div>
 {% endblock %}
