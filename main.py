@@ -120,44 +120,43 @@ def notes():
 @app.route("/interactive-quiz", methods=["GET", "POST"])
 @app.route("/interactive-quiz/", methods=["GET", "POST"])
 def quiz():
-    # global chat_history
+    global chat_history
 
-    model = "test"
     if "model" in session:
-        # TODO: figure out how to set the model in the the URL
-        pass
+        model = session["model"]
     else:
-        # model = request.args.get("mode", default="gpt-3.5")
-        # session["mode"] = mode
-        pass
+        model = "gpt-3.5"
 
     if request.method == "POST":
-        # First retrieve the message from the form
-        message = request.form["message"]
-        if message.strip() == "":
-            # Don't send a blank message
-            return redirect(url_for("chat"))
+        if "message" in request.form:
+            message = request.form["message"]
+            if message.strip() == "":
+                # Don't send a blank message
+                return redirect(url_for("quiz"))
 
-        # Add the message to the chat history
-        chat_history.append({"role": "user", "content": message})
+            # Add the message to the chat history
+            chat_history.append({"role": "user", "content": message})
 
-        # Get the AI response
-        if model == "gpt-3.5":
-            ai_response = ai_chat_response(chat_history, "gpt-3.5-turbo")
-        elif model == "gpt-4":
-            ai_response = ai_chat_response(chat_history, "gpt-4")
-        elif model == "test":
-            ai_response = "This is a test message."
-        # else:
-        #     model = "GPT-3.5"
+            # Get the AI response
+            if model == "gpt-3.5":
+                ai_response = ai_chat_response(chat_history, "gpt-3.5-turbo")
+            elif model == "gpt-4":
+                ai_response = ai_chat_response(chat_history, "gpt-4")
+            elif model == "test mode":
+                ai_response = "This is a test message."
 
-        # Add the AI response to the chat history
-        chat_history.append({"role": "assistant", "content": ai_response})
+            # Add the AI response to the chat history
+            chat_history.append({"role": "assistant", "content": ai_response})
 
-        session["chat_history"] = chat_history
+            session["chat_history"] = chat_history
+
+        if "model" in request.form:
+            model = request.form["model"]
+
+            session["model"] = model
 
         # Redirect to the chat page
-        return redirect(url_for("chat"))
+        return redirect(url_for("quiz"))
     else:
         if "chat_history" in session:
             # If the user has already been chatting with the AI, then we want to retrieve the chat history from the session
@@ -166,9 +165,9 @@ def quiz():
             # Otherwise, start with an empty chat history
             chat_history = []
 
-        # Render the chat page with the chat history
-        return render_template("chat.html", messages=chat_history)
+        # Render the quiz page with the chat history
+        return render_template("quiz.html", messages=chat_history, selected_model=model)
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5001)

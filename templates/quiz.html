@@ -31,7 +31,6 @@
       >
         <textarea
           name="message"
-          autocomplete="off"
           class="form-control"
           placeholder="Type your message here"
           rows="1"
@@ -41,30 +40,24 @@
       </form>
     </div>
   </div>
-  <div class="dropdown colide-menu-1">
-    <button
-      class="btn btn-secondary dropdown-toggle"
-      type="button"
-      data-bs-toggle="dropdown"
-    >
-      Select model
-    </button>
-    <ul class="dropdown-menu">
-      <li>
-        <a class="dropdown-item" href="{{ url_for('quiz', model='test') }}"
-          >Test mode</a
-        >
-      </li>
-      <li>
-        <a class="dropdown-item" href="{{ url_for('quiz', model='gpt-3.5') }}"
-          >GPT-3.5</a
-        >
-      </li>
-      <li>
-        <a class="dropdown-item" href="{{ url_for('quiz', model='gpt-4') }}"
-          >GPT-4</a
-        >
-      </li>
-    </ul>
+  <div class="side-menu col">
+    {% macro is_selected_model(model) %}
+      {% if selected_model == model %}
+        selected
+      {% endif %}
+    {% endmacro %}
+
+    <form action="{{ url_for('quiz') }}" method="POST">
+      <label for="select-quiz-model">Select a model</label>
+      <select name="model" id="select-quiz-model" onchange="this.form.submit()">
+        <option value="gpt-3.5" {{ is_selected_model('gpt-3.5') }}>
+          gpt-3.5
+        </option>
+        <option value="gpt-4" {{ is_selected_model('gpt-4') }}>gpt-4</option>
+        <option value="test mode" {{ is_selected_model('test mode') }}>
+          test mode
+        </option>
+      </select>
+    </form>
   </div>
 {% endblock %}
