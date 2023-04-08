@@ -20,6 +20,29 @@
     </form>
   </div>
   <div class="col side-menu">
+    {% macro is_selected_model(model) %}
+      {% if selected_model == model %}
+        selected
+      {% endif %}
+    {% endmacro %}
+
+    <form action="#" method="POST" class="mb-2">
+      <label for="select-notes-model">Select a model</label>
+      <select
+        name="model-notes"
+        id="select-notes-model"
+        onchange="this.form.submit()"
+      >
+        <option value="GPT-3.5" {{ is_selected_model('GPT-3.5') }}>
+          GPT-3.5
+        </option>
+        <option value="GPT-4" {{ is_selected_model('GPT-4') }}>GPT-4</option>
+        <option value="Test mode" {{ is_selected_model('Test mode') }}>
+          Test mode
+        </option>
+      </select>
+    </form>
+
     <button class="btn btn-primary" form="notes-form" name="create-notes">
       Create notes
     </button>

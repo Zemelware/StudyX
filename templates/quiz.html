@@ -47,9 +47,13 @@
       {% endif %}
     {% endmacro %}
 
-    <form action="{{ url_for('quiz') }}" method="POST" class="mb-2">
+    <form action="#" method="POST" class="mb-2">
       <label for="select-quiz-model">Select a model</label>
-      <select name="model" id="select-quiz-model" onchange="this.form.submit()">
+      <select
+        name="model-quiz"
+        id="select-quiz-model"
+        onchange="this.form.submit()"
+      >
         <option value="GPT-3.5" {{ is_selected_model('GPT-3.5') }}>
           GPT-3.5
         </option>
@@ -59,6 +63,7 @@
         </option>
       </select>
     </form>
+
     <form action="#" method="POST" id="quiz-form">
       <button class="btn btn-primary" form="quiz-form">Start quiz</button>
     </form>

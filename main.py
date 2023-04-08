@@ -26,22 +26,20 @@ def transcribe_audio(file):
 def transcript_to_notes(transcript, model):
     # TODO: add support for notes with headings and stuff (maybe using markdown)
 
-    # response = openai.ChatCompletion.create(
-    #     model=model,
-    #     messages=[
-    #         {"role": "system", "content": "You are a note taker that takes notes based on a transcript from a school lecture.\
-    #                                        Make the notes concise but make sure you also get down all the important information.\
-    #                                        Also, keep in mind that the transcript may contain text from different people speaking.\
-    #                                        Don't type anything else but the notes."},
-    #         {"role": "user", "content": "I am going to give you a transcript to create notes for. Type 'Y' if you're ready."},
-    #         {"role": "assistant", "content": "Y"},
-    #         {"role": "user", "content": transcript}
-    #     ]
-    # )
-    # notes = response["choices"][0]["message"]["content"]
+    response = openai.ChatCompletion.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You are a note taker that takes notes based on a transcript from a school lecture.\
+                                           Make the notes concise but make sure you also get down all the important information.\
+                                           Also, keep in mind that the transcript may contain text from different people speaking.\
+                                           Don't type anything else but the notes."},
+            {"role": "user", "content": "I am going to give you a transcript to create notes for. Type 'Y' if you're ready."},
+            {"role": "assistant", "content": "Y"},
+            {"role": "user", "content": transcript}
+        ]
+    )
+    notes = response["choices"][0]["message"]["content"]
     # TODO: also check the finish reason to make sure its valid
-
-    notes = "These are test notes.\n- This\n- Is\n- A\n- Test"
 
     return notes
 
@@ -68,12 +66,14 @@ def ai_chat_response(message_history, model):
     return response_text
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
+def index():
+    return redirect(url_for("transcript"))
+
+
 @app.route("/transcript", methods=["GET", "POST"])
 @app.route("/transcript/", methods=["GET", "POST"])
 def transcript():
-    # TODO: if the user edits the transcript, then update the variable and the session variable
-
     if request.method == "POST":
         # This code will run when the user clicks "Create transcript" or they edit the transcript
 
@@ -101,26 +101,41 @@ def transcript():
 @app.route("/notes", methods=["GET", "POST"])
 @app.route("/notes/", methods=["GET", "POST"])
 def notes():
+    if "model-notes" in session:
+        model_notes = session["model-notes"]
+    else:
+        model_notes = "GPT-3.5"
+
     if request.method == "POST":
-        # TODO: handle if transcript doesn't exist (give a warning to the user)
-        # This code will run when the user clicks "Create notes" or they edit the notes textarea
+        # This code will run when the user clicks "Create notes", or they edit the notes textarea, or they select a model
 
-        # Check if the user clicked the "Create notes" button
-        notes = request.form["notes"]
-        create_notes_clicked = "create-notes" in request.form
+        if "model-notes" in request.form:
+            model_notes = request.form["model-notes"]
 
-        if create_notes_clicked:
-            transcript = session["transcript"]
-            # TODO: create dropdown for user to select the model
-            notes = transcript_to_notes(transcript, "gpt-3.5-turbo")
+            session["model-notes"] = model_notes
+        else:
+            # Check if the user clicked the "Create notes" button
+            notes = request.form["notes"]
+            create_notes_clicked = "create-notes" in request.form
 
-        session["notes"] = notes
+            if create_notes_clicked:
+                # TODO: handle if transcript doesn't exist (give a warning to the user)
+                transcript = session["transcript"]
+
+                if model_notes == "GPT-3.5":
+                    notes = transcript_to_notes(transcript, "gpt-3.5-turbo")
+                elif model_notes == "GPT-4":
+                    notes = transcript_to_notes(transcript, "gpt-4")
+                elif model_notes == "Test mode":
+                    notes = "These are test notes."
+
+            session["notes"] = notes
 
         return redirect(url_for("notes"))
     else:
         # Load the notes from the session (default to empty string if they don't exist)
         notes = session.get("notes", "")
-        return render_template("notes.html", notes=notes)
+        return render_template("notes.html", notes=notes, selected_model=model_notes)
 
 
 @app.route("/interactive-quiz", methods=["GET", "POST"])
@@ -128,10 +143,10 @@ def notes():
 def quiz():
     global chat_history
 
-    if "model" in session:
-        model = session["model"]
+    if "model-quiz" in session:
+        model_quiz = session["model-quiz"]
     else:
-        model = "GPT-3.5"
+        model_quiz = "GPT-3.5"
 
     if request.method == "POST":
         if "message" in request.form:
@@ -144,11 +159,11 @@ def quiz():
             chat_history.append({"role": "user", "content": message})
 
             # Get the AI response
-            if model == "GPT-3.5":
+            if model_quiz == "GPT-3.5":
                 ai_response = ai_chat_response(chat_history, "gpt-3.5-turbo")
-            elif model == "GPT-4":
+            elif model_quiz == "GPT-4":
                 ai_response = ai_chat_response(chat_history, "gpt-4")
-            elif model == "Test mode":
+            elif model_quiz == "Test mode":
                 ai_response = "This is a test message."
 
             # Add the AI response to the chat history
@@ -156,10 +171,10 @@ def quiz():
 
             session["chat_history"] = chat_history
 
-        if "model" in request.form:
-            model = request.form["model"]
+        if "model-quiz" in request.form:
+            model_quiz = request.form["model-quiz"]
 
-            session["model"] = model
+            session["model-quiz"] = model_quiz
 
         # Redirect to the chat page
         return redirect(url_for("quiz"))
@@ -168,7 +183,7 @@ def quiz():
         chat_history = session.get("chat_history", [])
 
         # Render the quiz page with the chat history
-        return render_template("quiz.html", messages=chat_history, selected_model=model)
+        return render_template("quiz.html", messages=chat_history, selected_model=model_quiz)
 
 
 if __name__ == "__main__":
