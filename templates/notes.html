@@ -1,9 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
-  <div class="main-content col-8">
+  <div class="main-content col-8 d-flex flex-column">
     <h1>Lesson Notes</h1>
-    <form action="#" method="POST" id="notes-form">
-      <textarea name="notes" autocomplete="off" class="form-control">
+    <form
+      action="#"
+      method="POST"
+      id="notes-form"
+      class="d-flex flex-column flex-grow-1"
+    >
+      <textarea
+        name="notes"
+        autocomplete="off"
+        class="form-control flex-grow-1"
+      >
         {{ notes }}
       </textarea
       >
