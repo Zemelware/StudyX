@@ -47,10 +47,11 @@
       {% endif %}
     {% endmacro %}
 
-    <form action="#" method="POST" class="mb-2">
+    <form action="#" method="POST" class="mb-3">
       <label for="select-quiz-model">Select a model</label>
       <select
         name="model-quiz"
+        class="form-select"
         id="select-quiz-model"
         onchange="this.form.submit()"
       >
