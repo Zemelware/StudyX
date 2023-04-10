@@ -74,8 +74,6 @@ def index():
 @app.route("/transcript", methods=["GET", "POST"])
 @app.route("/transcript/", methods=["GET", "POST"])
 def transcript():
-    display_error_modal = False
-
     if request.method == "POST":
         # This code will run when the user clicks "Create transcript" or they edit the transcript
 
@@ -97,8 +95,7 @@ def transcript():
     else:
         # Load the transcript from the session (default to empty string if it doesn't exist)
         transcript = session.get("transcript", "")
-
-        # Check if the warning modal should be displayed then remove it from the session
+        # Check if the modal should be displayed then remove it from the session
         display_error_modal = session.pop("display_error_modal", False)
 
         return render_template("transcript.html", transcript=transcript, display_modal=display_error_modal)
@@ -122,18 +119,21 @@ def notes():
         else:
             # Check if the user clicked the "Create notes" button
             notes = request.form["notes"]
-            create_notes_clicked = "create-notes" in request.form
 
-            if create_notes_clicked:
-                # TODO: handle if transcript doesn't exist (give a warning to the user)
-                transcript = session["transcript"]
+            if "create-notes" in request.form:
+                transcript = session.get("transcript", "")
 
-                if model_notes == "GPT-3.5":
-                    notes = transcript_to_notes(transcript, "gpt-3.5-turbo")
-                elif model_notes == "GPT-4":
-                    notes = transcript_to_notes(transcript, "gpt-4")
-                elif model_notes == "Test mode":
-                    notes = "These are test notes."
+                if transcript.strip() == "":
+                    # Display an error if the transcript is empty
+                    session["display_error_modal"] = True
+                else:
+                    if model_notes == "GPT-3.5":
+                        notes = transcript_to_notes(
+                            transcript, "gpt-3.5-turbo")
+                    elif model_notes == "GPT-4":
+                        notes = transcript_to_notes(transcript, "gpt-4")
+                    elif model_notes == "Test mode":
+                        notes = "These are test notes."
 
             session["notes"] = notes
 
@@ -141,7 +141,10 @@ def notes():
     else:
         # Load the notes from the session (default to empty string if they don't exist)
         notes = session.get("notes", "")
-        return render_template("notes.html", notes=notes, selected_model=model_notes)
+        # Check if the modal should be displayed then remove it from the session
+        display_error_modal = session.pop("display_error_modal", False)
+
+        return render_template("notes.html", notes=notes, selected_model=model_notes, display_modal=display_error_modal)
 
 
 @app.route("/interactive-quiz", methods=["GET", "POST"])
