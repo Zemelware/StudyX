@@ -25,18 +25,17 @@
         {% endif %}
       {% endmacro %}
 
-      <!-- TODO: The gutter is making the buttons in the nav a bit smaller. fix this -->
       <nav class="nav nav-pills col-2 card bg-body-tertiary">
         <div class="card-body">
           <a
             class="nav-link {{ is_active('transcript') }}"
             href="{{ url_for('transcript') }}"
-            >Lesson Transcript</a
+            >Transcript</a
           >
           <a
             class="nav-link {{ is_active('notes') }}"
             href="{{ url_for('notes') }}"
-            >Lesson Notes</a
+            >Notes</a
           >
           <a
             class="nav-link {{ is_active('quiz') }}"
