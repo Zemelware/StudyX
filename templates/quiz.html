@@ -65,7 +65,55 @@
     </form>
 
     <form method="POST" id="quiz-form">
-      <button class="btn btn-primary" form="quiz-form">Start quiz</button>
+      <button class="btn btn-primary" name="start-quiz">Start quiz</button>
     </form>
   </div>
+
+  {% if display_modal %}
+    <div class="modal fade show" tabindex="-1" style="display: block;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ modal_title }}</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              onclick="window.location.reload()"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>{{ modal_body }}</p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+              onclick="window.location.reload()"
+            >
+              {{ modal_button_text }}
+            </button>
+            {% if show_danger_button %}
+              <form method="POST">
+                <button
+                  class="btn btn-danger"
+                  data-bs-dismiss="modal"
+                  name="restart-quiz"
+                >
+                  Yes, restart
+                </button>
+              </form>
+            {% endif %}
+            <input
+              type="hidden"
+              id="display-modal"
+              value="{{ display_modal }}"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+  {% endif %}
 {% endblock %}
