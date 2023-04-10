@@ -74,20 +74,22 @@ def index():
 @app.route("/transcript", methods=["GET", "POST"])
 @app.route("/transcript/", methods=["GET", "POST"])
 def transcript():
+    display_error_modal = False
+
     if request.method == "POST":
         # This code will run when the user clicks "Create transcript" or they edit the transcript
 
-        # Check if the user clicked the "Create transcript" button
         transcript = request.form["transcript"]
-        create_transcript_clicked = "create-transcript" in request.form
 
         # TODO: see how to use the action attribute of form (and if it's necessary to use)
 
-        if create_transcript_clicked:
+        if "create-transcript" in request.form:
             # TODO: figure out how to retrieve audio
             audio = ""
-            # TODO: handle if audio is empty (give a warning to the user)
-            transcript = transcribe_audio(audio)
+            if audio == "":
+                session["display_error_modal"] = True
+            else:
+                transcript = transcribe_audio(audio)
 
         session["transcript"] = transcript
 
@@ -95,7 +97,11 @@ def transcript():
     else:
         # Load the transcript from the session (default to empty string if it doesn't exist)
         transcript = session.get("transcript", "")
-        return render_template("transcript.html", transcript=transcript)
+
+        # Check if the warning modal should be displayed then remove it from the session
+        display_error_modal = session.pop("display_error_modal", False)
+
+        return render_template("transcript.html", transcript=transcript, display_modal=display_error_modal)
 
 
 @app.route("/notes", methods=["GET", "POST"])
@@ -187,4 +193,4 @@ def quiz():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5002)
