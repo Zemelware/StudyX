@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
   <div class="main-content col-8 d-flex flex-column">
-    <h1>Lesson Transcript</h1>
+    <h1>Transcript</h1>
     <audio src="" controls class="mb-2"></audio>
     <form
       action="#"
@@ -19,53 +19,8 @@
       </textarea
       >
     </form>
-
-    {% if display_modal %}
-      <div
-        class="modal fade show"
-        id="transcript-modal"
-        tabindex="-1"
-        style="display: block;"
-      >
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">No Audio</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                onclick="window.location.reload()"
-              ></button>
-            </div>
-            <div class="modal-body">
-              <p>There is no audio loaded to transcribe.</p>
-            </div>
-            <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-primary"
-                name="close-modal"
-                data-bs-dismiss="modal"
-                onclick="window.location.reload()"
-              >
-                Close
-              </button>
-              <input
-                type="hidden"
-                id="display-modal"
-                value="{{ display_modal }}"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="modal-backdrop fade show"
-        id="transcript-modal-backdrop"
-      ></div>
-    {% endif %}
   </div>
+
   <div class="col side-menu">
     <button
       class="btn btn-primary"
@@ -75,4 +30,42 @@
       Create transcript
     </button>
   </div>
+
+  {% if display_modal %}
+    <div class="modal fade show" tabindex="-1" style="display: block;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">No Audio</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              onclick="window.location.reload()"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>There is no audio loaded to transcribe.</p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-primary"
+              name="close-modal"
+              data-bs-dismiss="modal"
+              onclick="window.location.reload()"
+            >
+              Close
+            </button>
+            <input
+              type="hidden"
+              id="display-modal"
+              value="{{ display_modal }}"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+  {% endif %}
 {% endblock %}
