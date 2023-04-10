@@ -18,3 +18,15 @@ function submitOnEnter(event) {
     event.preventDefault(); // Prevents the addition of a new line in the text field
   }
 }
+
+function updateTestModeSwitch() {
+  // This function updates the test mode switch on the transcript page to reflect if the switch is on or off
+  var checkbox = document.getElementById("test-mode-switch");
+  var hiddenField = document.getElementById("test-mode-hidden");
+
+  if (checkbox.checked) {
+    hiddenField.value = "on";
+  } else {
+    hiddenField.value = "off";
+  }
+}

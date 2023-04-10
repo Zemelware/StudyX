@@ -17,9 +17,8 @@ chat_history = []
 
 
 def transcribe_audio(file):
-    # transcript = openai.Audio.transcribe(
-    #     "whisper-1", file, prompt="The transcript is a school lecture.", response_format="text")
-    transcript = "This is a test transcript."
+    transcript = openai.Audio.transcribe(
+        "whisper-1", file, prompt="The transcript is a school lecture.", response_format="text")
     return transcript
 
 
@@ -74,22 +73,26 @@ def index():
 @app.route("/transcript", methods=["GET", "POST"])
 @app.route("/transcript/", methods=["GET", "POST"])
 def transcript():
+    test_mode_enabled = session.get("test-mode", "off")
+
     if request.method == "POST":
-        # This code will run when the user clicks "Create transcript" or they edit the transcript
+        if "test-mode" in request.form:
+            session["test-mode"] = request.form["test-mode"] == "on"
+        else:
+            transcript = request.form.get("transcript", "")
 
-        transcript = request.form["transcript"]
+            if "create-transcript" in request.form:
+                # TODO: figure out how to retrieve audio
+                audio = ""
+                if audio == "":
+                    session["display_error_modal"] = True
+                else:
+                    if test_mode_enabled:
+                        transcript = "This is a test transcript."
+                    else:
+                        transcript = transcribe_audio(audio)
 
-        # TODO: see how to use the action attribute of form (and if it's necessary to use)
-
-        if "create-transcript" in request.form:
-            # TODO: figure out how to retrieve audio
-            audio = ""
-            if audio == "":
-                session["display_error_modal"] = True
-            else:
-                transcript = transcribe_audio(audio)
-
-        session["transcript"] = transcript
+            session["transcript"] = transcript
 
         return redirect(url_for("transcript"))
     else:
@@ -98,24 +101,20 @@ def transcript():
         # Check if the modal should be displayed then remove it from the session
         display_error_modal = session.pop("display_error_modal", False)
 
-        return render_template("transcript.html", transcript=transcript, display_modal=display_error_modal)
+        return render_template("transcript.html", transcript=transcript, test_mode_enabled=test_mode_enabled, display_modal=display_error_modal)
 
 
 @app.route("/notes", methods=["GET", "POST"])
 @app.route("/notes/", methods=["GET", "POST"])
 def notes():
-    if "model-notes" in session:
-        model_notes = session["model-notes"]
-    else:
-        model_notes = "GPT-3.5"
+    # This is for the model selection dropdown
+    selected_model = session.get("model-notes", "GPT-3.5")
 
     if request.method == "POST":
-        # This code will run when the user clicks "Create notes", or they edit the notes textarea, or they select a model
 
         if "model-notes" in request.form:
-            model_notes = request.form["model-notes"]
-
-            session["model-notes"] = model_notes
+            selected_model = request.form["model-notes"]
+            session["model-notes"] = selected_model
         else:
             # Check if the user clicked the "Create notes" button
             notes = request.form["notes"]
@@ -127,12 +126,12 @@ def notes():
                     # Display an error if the transcript is empty
                     session["display_error_modal"] = True
                 else:
-                    if model_notes == "GPT-3.5":
+                    if selected_model == "GPT-3.5":
                         notes = transcript_to_notes(
                             transcript, "gpt-3.5-turbo")
-                    elif model_notes == "GPT-4":
+                    elif selected_model == "GPT-4":
                         notes = transcript_to_notes(transcript, "gpt-4")
-                    elif model_notes == "Test mode":
+                    elif selected_model == "Test mode":
                         notes = "These are test notes."
 
             session["notes"] = notes
@@ -144,7 +143,7 @@ def notes():
         # Check if the modal should be displayed then remove it from the session
         display_error_modal = session.pop("display_error_modal", False)
 
-        return render_template("notes.html", notes=notes, selected_model=model_notes, display_modal=display_error_modal)
+        return render_template("notes.html", notes=notes, selected_model=selected_model, display_modal=display_error_modal)
 
 
 @app.route("/interactive-quiz", methods=["GET", "POST"])
@@ -153,9 +152,9 @@ def quiz():
     global chat_history
 
     if "model-quiz" in session:
-        model_quiz = session["model-quiz"]
+        selected_model = session["model-quiz"]
     else:
-        model_quiz = "GPT-3.5"
+        selected_model = "GPT-3.5"
 
     if request.method == "POST":
         if "message" in request.form:
@@ -168,11 +167,11 @@ def quiz():
             chat_history.append({"role": "user", "content": message})
 
             # Get the AI response
-            if model_quiz == "GPT-3.5":
+            if selected_model == "GPT-3.5":
                 ai_response = ai_chat_response(chat_history, "gpt-3.5-turbo")
-            elif model_quiz == "GPT-4":
+            elif selected_model == "GPT-4":
                 ai_response = ai_chat_response(chat_history, "gpt-4")
-            elif model_quiz == "Test mode":
+            elif selected_model == "Test mode":
                 ai_response = "This is a test message."
 
             # Add the AI response to the chat history
@@ -181,9 +180,9 @@ def quiz():
             session["chat_history"] = chat_history
 
         if "model-quiz" in request.form:
-            model_quiz = request.form["model-quiz"]
+            selected_model = request.form["model-quiz"]
 
-            session["model-quiz"] = model_quiz
+            session["model-quiz"] = selected_model
 
         # Redirect to the chat page
         return redirect(url_for("quiz"))
@@ -192,7 +191,7 @@ def quiz():
         chat_history = session.get("chat_history", [])
 
         # Render the quiz page with the chat history
-        return render_template("quiz.html", messages=chat_history, selected_model=model_quiz)
+        return render_template("quiz.html", messages=chat_history, selected_model=selected_model)
 
 
 if __name__ == "__main__":

@@ -22,6 +22,17 @@
   </div>
 
   <div class="col side-menu">
+    <form method="POST" class="form-check form-switch mb-3">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="test-mode-switch"
+        {% if test_mode_enabled %}checked{% endif %}
+        onclick="updateTestModeSwitch(); this.form.submit()"
+      />
+      <input type="hidden" name="test-mode" value="off" id="test-mode-hidden" />
+      <label class="form-check-label" for="test-mode-switch">Test mode</label>
+    </form>
     <button
       class="btn btn-primary"
       form="transcript-form"
