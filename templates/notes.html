@@ -2,12 +2,7 @@
 {% block content %}
   <div class="main-content col-8 d-flex flex-column">
     <h1>Notes</h1>
-    <form
-      action="#"
-      method="POST"
-      id="notes-form"
-      class="d-flex flex-column flex-grow-1"
-    >
+    <form method="POST" id="notes-form" class="d-flex flex-column flex-grow-1">
       <textarea
         name="notes"
         autocomplete="off"
@@ -26,7 +21,7 @@
       {% endif %}
     {% endmacro %}
 
-    <form action="#" method="POST" class="mb-3">
+    <form method="POST" class="mb-3">
       <label for="select-notes-model">Select a model</label>
       <select
         name="model-notes"
