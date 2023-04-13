@@ -34,13 +34,14 @@ if (
 
     // After a message is sent, clear the message field and focus on it
     if (elementId === messageForm.id) {
-      messageField.value = "";
-      messageField.focus();
+      messageField.value = ""; // Clear the message field
+      messageField.focus(); // Focus on the message field
       // Scroll to the bottom of the chat window
       chatBody.scrollTo({
         top: chatBody.scrollHeight,
         behavior: "smooth",
       });
+      messageField.style.height = "auto"; // Reset the height of the message field
     }
   });
 }
