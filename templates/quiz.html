@@ -5,21 +5,7 @@
       <h2 class="card-title mb-0">Interactive Quiz Chat</h2>
     </div>
     <div class="card-body" id="chat-body">
-      {% for message in messages %}
-        {% if message["role"] == "user" %}
-          <div class="row">
-            <div class="col-8 offset-4">
-              <p class="user-message">{{ message["content"] }}</p>
-            </div>
-          </div>
-        {% else %}
-          <div class="row">
-            <div class="col-8">
-              <p class="ai-message">{{ message["content"] }}</p>
-            </div>
-          </div>
-        {% endif %}
-      {% endfor %}
+      {% include "chat_body.html" %}
     </div>
     <div class="m-3">
       <form
@@ -27,6 +13,9 @@
         class="input-group"
         id="message-form"
         autocomplete="off"
+        hx-post="/interactive-quiz"
+        hx-swap="innerHTML"
+        hx-target="#chat-body"
       >
         <textarea
           name="message"
@@ -35,7 +24,7 @@
           rows="1"
           autofocus
         ></textarea>
-        <button class="btn btn-primary">Send</button>
+        <button class="btn btn-primary" id="send-button">Send</button>
       </form>
     </div>
   </div>
@@ -64,56 +53,14 @@
       </select>
     </form>
 
-    <form method="POST" id="quiz-form">
+    <form
+      method="POST"
+      id="quiz-form"
+      hx-post="/interactive-quiz"
+      hx-swap="innerHTML"
+      hx-target="#chat-body"
+    >
       <button class="btn btn-primary" name="start-quiz">Start quiz</button>
     </form>
   </div>
-
-  {% if display_modal %}
-    <div class="modal fade show" tabindex="-1" style="display: block;">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">{{ modal_title }}</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              onclick="window.location.reload()"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <p>{{ modal_body }}</p>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-primary"
-              data-bs-dismiss="modal"
-              onclick="window.location.reload()"
-            >
-              {{ modal_button_text }}
-            </button>
-            {% if show_danger_button %}
-              <form method="POST">
-                <button
-                  class="btn btn-danger"
-                  data-bs-dismiss="modal"
-                  name="restart-quiz"
-                >
-                  Yes, restart
-                </button>
-              </form>
-            {% endif %}
-            <input
-              type="hidden"
-              id="display-modal"
-              value="{{ display_modal }}"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
-  {% endif %}
 {% endblock %}

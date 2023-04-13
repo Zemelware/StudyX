@@ -175,41 +175,45 @@ def notes():
 def quiz():
     global chat_history
 
-    if "model-quiz" in session:
-        selected_model = session["model-quiz"]
-    else:
-        selected_model = "GPT-3.5"
+    selected_model = session.get("model-quiz", "GPT-3.5")
 
     if request.method == "POST":
-        if "start-quiz" in request.form or "restart-quiz" in request.form or "message" in request.form:
+        if "model-quiz" in request.form:
+            # Set the selected model (from the dropdown)
+            selected_model = request.form["model-quiz"]
+            session["model-quiz"] = selected_model
+            return redirect(url_for("quiz"))
+        else:
             if "start-quiz" in request.form or "restart-quiz" in request.form:
                 notes = session.get("notes", "")
                 if notes.strip() == "":
                     # Display an error if the notes are empty
-                    session["no_notes_modal"] = True
-                    return redirect(url_for("quiz"))
+                    return render_template("chat_body.html", modal_title="No notes",
+                                           modal_body="There must be notes on the previous screen to create the quiz from. Please create notes from a transcript or paste in your notes.",
+                                           modal_button1_text="Okay", modal_button1_style="primary", messages=chat_history)
 
                 # Display a warning if the user tries to restart the quiz. If they confirmed they want to restart, then the quiz will be restarted
                 if session.get("quiz_started", False) and not "restart-quiz" in request.form:
-                    session["restart_quiz_modal"] = True
-                    return redirect(url_for("quiz"))
+                    return render_template("chat_body.html", modal_title="Restart quiz?",
+                                           modal_body="Are you sure you want to restart the quiz? All of your previous messages will be deleted.",
+                                           modal_button1_text="Cancel", modal_button2_text="Yes, I'm sure", modal_button1_style="primary",
+                                           modal_button2_style="danger", modal_button2_name="restart-quiz", messages=chat_history)
                 else:
                     # Reset the chat history
                     chat_history.clear()
-
                     session["quiz_started"] = True
 
             if "message" in request.form:
                 message = request.form.get("message", "")
                 if message.strip() == "":
                     # Don't send a blank message
-                    return redirect(url_for("quiz"))
+                    return render_template("chat_body.html", messages=chat_history)
 
                 # Add the message to the chat history
                 chat_history.append({"role": "user", "content": message})
 
+            # Get the AI response if the quiz is started
             if session.get("quiz_started", False):
-                # Get the AI response if the quiz is started
                 if selected_model == "GPT-3.5":
                     ai_response = ai_chat_response(
                         chat_history, "gpt-3.5-turbo")
@@ -225,50 +229,17 @@ def quiz():
                 session["chat_history"] = chat_history
             else:
                 # Display an error if the user tries to send a message without starting the quiz
-                session["start_quiz_modal"] = True
+                return render_template("chat_body.html", modal_title="Start the quiz",
+                                       modal_body="You must start the quiz before sending a message. Please click the \"Start quiz\" button.",
+                                       modal_button1_text="Okay", modal_button1_style="primary")
 
-        elif "model-quiz" in request.form:
-            selected_model = request.form["model-quiz"]
+            return render_template("chat_body.html", messages=chat_history)
 
-            session["model-quiz"] = selected_model
-
-        # Redirect to the chat page
-        return redirect(url_for("quiz"))
     else:
         # Load the chat history from the session (default to empty list if it doesn't exist)
         chat_history = session.get("chat_history", [])
 
-        # Default to not displaying any modal
-        show_modal = False
-        modal_title = ""
-        modal_body = ""
-        modal_button_text = "Okay"
-        show_danger_button = False
-
-        # Check if any modal should be displayed then remove it from the session
-        no_notes_modal = session.pop("no_notes_modal", False)
-        start_quiz_modal = session.pop("start_quiz_modal", False)
-        restart_quiz_modal = session.pop("restart_quiz_modal", False)
-
-        # Set the modal title and body
-        if no_notes_modal:
-            modal_title = "No notes"
-            modal_body = "There must be notes on the previous screen to create the quiz from. Please create notes from a transcript or paste in your notes."
-        elif start_quiz_modal:
-            modal_title = "Start the quiz"
-            modal_body = "You must start the quiz before sending a message. Please click the \"Start quiz\" button."
-        elif restart_quiz_modal:
-            modal_title = "Restart?"
-            modal_body = "Are you sure you want to restart the quiz? All of your previous messages will be deleted."
-            modal_button_text = "Cancel"
-            show_danger_button = True
-
-        if any([no_notes_modal, start_quiz_modal, restart_quiz_modal]):
-            show_modal = True
-
-        # Render the quiz page with the chat history
-        return render_template("quiz.html", messages=chat_history, selected_model=selected_model, display_modal=show_modal,
-                               modal_title=modal_title, modal_body=modal_body, modal_button_text=modal_button_text, show_danger_button=show_danger_button)
+        return render_template("quiz.html", messages=chat_history, selected_model=selected_model)
 
 
 if __name__ == "__main__":
