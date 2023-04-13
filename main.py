@@ -92,26 +92,29 @@ def index():
 @app.route("/transcript", methods=["GET", "POST"])
 @app.route("/transcript/", methods=["GET", "POST"])
 def transcript():
-    # TODO: create warning modal if the user clicks "Create transcript" and there is already a transcript
-
     test_mode_enabled = session.get("test-mode", False)
 
     if request.method == "POST":
         if "test-mode" in request.form:
+            # Get the value of the switch to check if "test mode" is enabled
             session["test-mode"] = request.form["test-mode"] == "on"
         else:
             transcript = request.form.get("transcript", "")
 
-            if "create-transcript" in request.form:
+            if "create-transcript" in request.form or "overwrite-transcript" in request.form:
                 # TODO: figure out how to retrieve audio
-                audio = ""
+                audio = "."
                 if audio == "":
+                    # Show an error if there's no audio loaded when the user clicks "Create transcript"
                     session["no_audio_modal"] = True
+                elif transcript.strip() != "" and not "overwrite-transcript" in request.form:
+                    # Show a warning if the user tries to overwrite an existing transcript
+                    # (this will not be run if the user confirms that they want to overwrite the transcript)
+                    session["overwrite_transcript_modal"] = True
+                elif test_mode_enabled:
+                    transcript = "This is a test transcript."
                 else:
-                    if test_mode_enabled:
-                        transcript = "This is a test transcript."
-                    else:
-                        transcript = transcribe_audio(audio)
+                    transcript = transcribe_audio(audio)
 
             session["transcript"] = transcript
 
@@ -119,10 +122,32 @@ def transcript():
     else:
         # Load the transcript from the session (default to empty string if it doesn't exist)
         transcript = session.get("transcript", "")
+
+        show_modal = False
+        modal_title = ""
+        modal_body = ""
+        modal_button1_text = "Okay"
+        modal_show_danger_button = False
+
         # Check if the modal should be displayed then remove it from the session
         no_audio_modal = session.pop("no_audio_modal", False)
+        overwrite_transcript_modal = session.pop(
+            "overwrite_transcript_modal", False)
 
-        return render_template("transcript.html", transcript=transcript, test_mode_enabled=test_mode_enabled, display_modal=no_audio_modal)
+        if no_audio_modal:
+            modal_title = "No audio"
+            modal_body = "There is no audio loaded to transcribe. Please record audio and try again."
+        elif overwrite_transcript_modal:
+            modal_title = "Overwrite transcript?"
+            modal_body = "Are you sure you want to overwrite the existing transcript and create a new one?"
+            modal_button1_text = "Cancel"
+            modal_show_danger_button = True
+
+        if any([no_audio_modal, overwrite_transcript_modal]):
+            show_modal = True
+
+        return render_template("transcript.html", transcript=transcript, test_mode_enabled=test_mode_enabled, display_modal=show_modal,
+                               modal_title=modal_title, modal_body=modal_body, modal_button1_text=modal_button1_text, modal_show_danger_button=modal_show_danger_button)
 
 
 @app.route("/notes", methods=["GET", "POST"])

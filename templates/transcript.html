@@ -29,6 +29,7 @@
         {% if test_mode_enabled %}checked{% endif %}
         onclick="updateTestModeSwitch(); this.form.submit()"
       />
+      <!-- This hidden input helps get the value of the switch in Python -->
       <input type="hidden" name="test-mode" value="off" id="test-mode-hidden" />
       <label class="form-check-label" for="test-mode-switch">Test mode</label>
     </form>
@@ -46,7 +47,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">No Audio</h5>
+            <h5 class="modal-title">{{ modal_title }}</h5>
             <button
               type="button"
               class="btn-close"
@@ -55,23 +56,28 @@
             ></button>
           </div>
           <div class="modal-body">
-            <p>There is no audio loaded to transcribe.</p>
+            <p>{{ modal_body }}</p>
           </div>
           <div class="modal-footer">
             <button
               type="button"
               class="btn btn-primary"
-              name="close-modal"
               data-bs-dismiss="modal"
               onclick="window.location.reload()"
             >
-              Close
+              {{ modal_button1_text }}
             </button>
-            <input
-              type="hidden"
-              id="display-modal"
-              value="{{ display_modal }}"
-            />
+            {% if modal_show_danger_button %}
+              <form method="POST">
+                <button
+                  class="btn btn-danger"
+                  data-bs-dismiss="modal"
+                  name="overwrite-transcript"
+                >
+                  Yes, I'm sure
+                </button>
+              </form>
+            {% endif %}
           </div>
         </div>
       </div>
