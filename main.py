@@ -1,15 +1,23 @@
+from datetime import timedelta
 import os
 
 import openai
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for
+from flask_session import Session
 
 load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.config["SESSION_PERMANENT"] = False
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
+app.config["SESSION_TYPE"] = "filesystem"
+app.config["SECRET_KEY"] = os.urandom(24)
+app.config.from_object(__name__)
+
+Session(app)
 
 chat_history = []
 
@@ -37,6 +45,7 @@ def transcript_to_notes(transcript, model):
             {"role": "user", "content": transcript}
         ]
     )
+    print(response)
     notes = response["choices"][0]["message"]["content"]
     # TODO: also check the finish reason to make sure its valid
 
