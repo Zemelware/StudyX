@@ -49,7 +49,7 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">No Transcript</h5>
+            <h5 class="modal-title">{{ modal_title }}</h5>
             <button
               type="button"
               class="btn-close"
@@ -58,26 +58,28 @@
             ></button>
           </div>
           <div class="modal-body">
-            <p>
-              There must be a transcript to create notes from. On the Transcript
-              page please transcribe audio or paste in a transcript.
-            </p>
+            <p>{{ modal_body }}</p>
           </div>
           <div class="modal-footer">
             <button
               type="button"
               class="btn btn-primary"
-              name="close-modal"
               data-bs-dismiss="modal"
               onclick="window.location.reload()"
             >
-              Close
+              {{ modal_button1_text }}
             </button>
-            <input
-              type="hidden"
-              id="display-modal"
-              value="{{ display_modal }}"
-            />
+            {% if modal_show_danger_button %}
+              <form method="POST">
+                <button
+                  class="btn btn-danger"
+                  data-bs-dismiss="modal"
+                  name="overwrite-notes"
+                >
+                  Yes, I'm sure
+                </button>
+              </form>
+            {% endif %}
           </div>
         </div>
       </div>

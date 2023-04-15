@@ -123,13 +123,14 @@ def transcript():
         # Load the transcript from the session (default to empty string if it doesn't exist)
         transcript = session.get("transcript", "")
 
+        # Default values for the modal
         show_modal = False
         modal_title = ""
         modal_body = ""
         modal_button1_text = "Okay"
         modal_show_danger_button = False
 
-        # Check if the modal should be displayed then remove it from the session
+        # Check if any modal should be displayed then remove it from the session
         no_audio_modal = session.pop("no_audio_modal", False)
         overwrite_transcript_modal = session.pop(
             "overwrite_transcript_modal", False)
@@ -153,8 +154,6 @@ def transcript():
 @app.route("/notes", methods=["GET", "POST"])
 @app.route("/notes/", methods=["GET", "POST"])
 def notes():
-    # TODO: create warning modal if the user clicks "Create notes" and there are already notes
-
     # This is for the model selection dropdown
     selected_model = session.get("model-notes", "GPT-3.5")
 
@@ -165,14 +164,17 @@ def notes():
             session["model-notes"] = selected_model
         else:
             # Check if the user clicked the "Create notes" button
-            notes = request.form["notes"]
+            notes = request.form.get("notes", "")
 
-            if "create-notes" in request.form:
+            if "create-notes" in request.form or "overwrite-notes" in request.form:
                 transcript = session.get("transcript", "")
 
                 if transcript.strip() == "":
                     # Display an error if the transcript is empty
                     session["no_transcript_modal"] = True
+                elif notes.strip() != "" and not "overwrite-notes" in request.form:
+                    # Show a warning if the user tries to overwrite existing notes
+                    session["overwrite_notes_modal"] = True
                 else:
                     if selected_model == "GPT-3.5":
                         notes = transcript_to_notes(
@@ -188,16 +190,38 @@ def notes():
     else:
         # Load the notes from the session (default to empty string if they don't exist)
         notes = session.get("notes", "")
-        # Check if the modal should be displayed then remove it from the session
-        no_transcript_modal = session.pop(
-            "no_transcript_modal", False)
 
-        return render_template("notes.html", notes=notes, selected_model=selected_model, display_modal=no_transcript_modal)
+        # Default values for the modal
+        show_modal = False
+        modal_title = ""
+        modal_body = ""
+        modal_button1_text = "Okay"
+        modal_show_danger_button = False
+
+        # Check if any modal should be displayed then remove it from the session
+        no_transcript_modal = session.pop("no_transcript_modal", False)
+        overwrite_notes_modal = session.pop("overwrite_notes_modal", False)
+
+        if no_transcript_modal:
+            modal_title = "No transcript"
+            modal_body = "There must be a transcript to create notes from. On the \"Transcript\" page please transcribe audio or paste in a transcript."
+        elif overwrite_notes_modal:
+            modal_title = "Overwrite notes?"
+            modal_body = "Are you sure you want to overwrite the existing notes and create new ones?"
+            modal_button1_text = "Cancel"
+            modal_show_danger_button = True
+
+        if any([no_transcript_modal, overwrite_notes_modal]):
+            show_modal = True
+
+        return render_template("notes.html", notes=notes, selected_model=selected_model, display_modal=show_modal,
+                               modal_title=modal_title, modal_body=modal_body, modal_button1_text=modal_button1_text, modal_show_danger_button=modal_show_danger_button)
 
 
 @app.route("/interactive-quiz", methods=["GET", "POST"])
 @app.route("/interactive-quiz/", methods=["GET", "POST"])
 def quiz():
+    # TODO: when waiting for a response from the model, write "Thinking..." in the chat box
     global chat_history
 
     selected_model = session.get("model-quiz", "GPT-3.5")
@@ -268,4 +292,4 @@ def quiz():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5002)
+    app.run(debug=True)
