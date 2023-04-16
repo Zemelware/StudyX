@@ -272,11 +272,13 @@ def quiz():
 
             # Get the AI response if the quiz is started
             if session.get("quiz_started", False):
+                notes = session.get("notes", "")
                 if selected_model == "GPT-3.5":
                     ai_response = ai_chat_response(
-                        chat_history, "gpt-3.5-turbo")
+                        chat_history, notes, "gpt-3.5-turbo")
                 elif selected_model == "GPT-4":
-                    ai_response = ai_chat_response(chat_history, "gpt-4")
+                    ai_response = ai_chat_response(
+                        chat_history, notes, "gpt-4")
                 elif selected_model == "Test mode":
                     ai_response = "This is a test message."
 
