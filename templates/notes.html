@@ -2,18 +2,15 @@
 {% block content %}
   <div class="main-content col-8 d-flex flex-column">
     <h1>Notes</h1>
-    <form method="POST" id="notes-form" class="d-flex flex-column flex-grow-1">
-      <textarea
-        name="notes"
-        autocomplete="off"
-        class="form-control flex-grow-1"
-        onchange="this.form.submit()"
-      >
+    <form method="POST" id="notes-form">
+      <textarea name="notes" id="notes-textarea" autocomplete="off">
 {{ notes }}</textarea
       >
     </form>
   </div>
   <div class="col side-menu">
+    <!-- TODO: add the ability to export and upload notes -->
+
     {% macro is_selected_model(model) %}
       {% if selected_model == model %}
         selected

@@ -52,6 +52,45 @@ if (
   });
 }
 
+if (
+  window.location.pathname === "/notes" ||
+  window.location.pathname === "/notes/"
+) {
+  notesTextarea = document.getElementById("notes-textarea");
+  var simplemdeNotes = new SimpleMDE({
+    forceSync: true, // Sync the values of EasyMDE and the textarea
+    element: notesTextarea,
+    toolbar: [
+      "bold",
+      "italic",
+      "heading",
+      "|",
+      "quote",
+      "unordered-list",
+      "ordered-list",
+      "|",
+      "link",
+      "image",
+      "table",
+      "|",
+      "preview",
+      "side-by-side",
+      "fullscreen",
+      "|",
+      "guide",
+    ],
+  });
+
+  simplemdeNotes.togglePreview(); // Enable preview mode
+
+  simplemdeNotes.codemirror.on("change", function () {
+    // This function is called when the notes are changed
+
+    // Send a post request to save the notes
+    $.post("/save_notes", { notes: simplemdeNotes.value() });
+  });
+}
+
 function updateTestModeSwitch() {
   // This function updates the test mode switch on the transcript page to reflect if the switch is on or off
   var checkbox = document.getElementById("test-mode-switch");

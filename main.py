@@ -191,7 +191,7 @@ def notes():
                     elif selected_model == "GPT-4":
                         notes = transcript_to_notes(transcript, "gpt-4")
                     elif selected_model == "Test mode":
-                        notes = "These are test notes."
+                        notes = "# These are test notes."
 
             session["notes"] = notes
 
@@ -225,6 +225,14 @@ def notes():
 
         return render_template("notes.html", notes=notes, selected_model=selected_model, display_modal=show_modal,
                                modal_title=modal_title, modal_body=modal_body, modal_button1_text=modal_button1_text, modal_show_danger_button=modal_show_danger_button)
+
+
+@app.route("/save_notes", methods=["POST"])
+def save_notes():
+    # Save the notes to the session (this will run when the user manually edits the notes)
+    notes = request.form.get("notes", "")
+    session["notes"] = notes
+    return "Success"
 
 
 @app.route("/interactive-quiz", methods=["GET", "POST"])

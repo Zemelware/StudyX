@@ -69,6 +69,11 @@ textarea {
   resize: none;
 }
 
+/* This adjusts the SimpleMDE textarea */
+.CodeMirror {
+  height: 85vh;
+}
+
 textarea[name="message"] {
   max-height: 300px;
 }
