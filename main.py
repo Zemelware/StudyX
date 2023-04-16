@@ -261,11 +261,14 @@ def quiz():
                     chat_history.clear()
                     session["quiz_started"] = True
 
-            if "message" in request.form:
-                message = request.form.get("message", "")
-                if message.strip() == "":
-                    # Don't send a blank message
-                    return render_template("chat_body.html", messages=chat_history)
+            if "message" in request.form or "sample-response" in request.form:
+                if "message" in request.form:
+                    message = request.form.get("message", "")
+                    if message.strip() == "":
+                        # Don't send a blank message
+                        return render_template("chat_body.html", messages=chat_history)
+                elif "sample-response" in request.form:
+                    message = request.form.get("sample-response", "")
 
                 # Add the message to the chat history
                 chat_history.append({"role": "user", "content": message})

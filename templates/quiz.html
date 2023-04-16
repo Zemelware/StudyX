@@ -10,6 +10,33 @@
     <div class="m-3">
       <form
         method="POST"
+        class="ms-2 mb-3"
+        id="sample-responses"
+        hx-post="/interactive-quiz"
+        hx-swap="innerHTML"
+        hx-target="#chat-body"
+      >
+        <input
+          type="submit"
+          class="btn btn-outline-secondary btn-sm rounded-3"
+          name="sample-response"
+          value="Next question"
+        />
+        <input
+          type="submit"
+          class="btn btn-outline-secondary btn-sm rounded-3"
+          name="sample-response"
+          value="Give me a hint"
+        />
+        <input
+          type="submit"
+          class="btn btn-outline-secondary btn-sm rounded-3"
+          name="sample-response"
+          value="Tell me the answer"
+        />
+      </form>
+      <form
+        method="POST"
         class="input-group"
         id="message-form"
         autocomplete="off"

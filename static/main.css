@@ -16,6 +16,18 @@ body {
   overflow-y: auto;
 }
 
+#sample-responses .btn {
+  padding: 2px 7px;
+  margin-right: 5px;
+  border-color: grey;
+  color: #333;
+  font-weight: 500;
+}
+
+#sample-responses .btn:hover {
+  background-color: #ddd;
+}
+
 .user-message {
   background-color: #007bff;
   color: #fff;

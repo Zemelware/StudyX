@@ -27,21 +27,27 @@ if (
   }
 
   var messageForm = document.getElementById("message-form");
+  var sampleResponses = document.getElementById("sample-responses");
   var chatBody = document.getElementById("chat-body");
   document.body.addEventListener("htmx:afterRequest", function (event) {
     // This function is called after every HTMX request
     var elementId = event.target.id;
 
-    // After a message is sent, clear the message field and focus on it
+    // This runs after a typed message is sent
     if (elementId === messageForm.id) {
       messageField.value = ""; // Clear the message field
+      messageField.style.height = "auto"; // Reset the height of the message field
+    }
+
+    // This runs after a sample response is sent or a typed message is sent
+    if (elementId === sampleResponses.id || elementId === messageForm.id) {
       messageField.focus(); // Focus on the message field
+
       // Scroll to the bottom of the chat window
       chatBody.scrollTo({
         top: chatBody.scrollHeight,
         behavior: "smooth",
       });
-      messageField.style.height = "auto"; // Reset the height of the message field
     }
   });
 }
