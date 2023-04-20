@@ -137,6 +137,7 @@ def transcript():
         modal_title = ""
         modal_body = ""
         modal_button1_text = "Okay"
+        modal_button1_style = "primary"
         modal_show_danger_button = False
 
         # Check if any modal should be displayed then remove it from the session
@@ -151,18 +152,20 @@ def transcript():
             modal_title = "Overwrite transcript?"
             modal_body = "Are you sure you want to overwrite the existing transcript and create a new one?"
             modal_button1_text = "Cancel"
+            modal_button1_style = "secondary"
             modal_show_danger_button = True
 
         if any([no_audio_modal, overwrite_transcript_modal]):
             show_modal = True
 
         return render_template("transcript.html", transcript=transcript, test_mode_enabled=test_mode_enabled, display_modal=show_modal,
-                               modal_title=modal_title, modal_body=modal_body, modal_button1_text=modal_button1_text, modal_show_danger_button=modal_show_danger_button)
+                               modal_title=modal_title, modal_body=modal_body, modal_button1_text=modal_button1_text, modal_button1_style=modal_button1_style, modal_show_danger_button=modal_show_danger_button)
 
 
 @app.route("/notes", methods=["GET", "POST"])
 @app.route("/notes/", methods=["GET", "POST"])
 def notes():
+    # TODO: when waiting for the model to respond, display a loading animation or write "Thinking..." or something
     # This is for the model selection dropdown
     selected_model = session.get("model-notes", "GPT-3.5")
 
@@ -175,6 +178,7 @@ def notes():
             # Check if the user clicked the "Create notes" button
             notes = request.form.get("notes", "")
 
+            # Check if the user clicked the "Create notes" button or confirmed that they want to overwrite the notes
             if "create-notes" in request.form or "overwrite-notes" in request.form:
                 transcript = session.get("transcript", "")
 
@@ -205,6 +209,7 @@ def notes():
         modal_title = ""
         modal_body = ""
         modal_button1_text = "Okay"
+        modal_button1_style = "primary"
         modal_show_danger_button = False
 
         # Check if any modal should be displayed then remove it from the session
@@ -218,13 +223,14 @@ def notes():
             modal_title = "Overwrite notes?"
             modal_body = "Are you sure you want to overwrite the existing notes and create new ones?"
             modal_button1_text = "Cancel"
+            modal_button1_style = "secondary"
             modal_show_danger_button = True
 
         if any([no_transcript_modal, overwrite_notes_modal]):
             show_modal = True
 
         return render_template("notes.html", notes=notes, selected_model=selected_model, display_modal=show_modal,
-                               modal_title=modal_title, modal_body=modal_body, modal_button1_text=modal_button1_text, modal_show_danger_button=modal_show_danger_button)
+                               modal_title=modal_title, modal_body=modal_body, modal_button1_text=modal_button1_text, modal_button1_style=modal_button1_style, modal_show_danger_button=modal_show_danger_button)
 
 
 @app.route("/save_notes", methods=["POST"])
@@ -262,7 +268,7 @@ def quiz():
                 if session.get("quiz_started", False) and not "restart-quiz" in request.form:
                     return render_template("chat_body.html", modal_title="Restart quiz?",
                                            modal_body="Are you sure you want to restart the quiz? All of your previous messages will be deleted.",
-                                           modal_button1_text="Cancel", modal_button2_text="Yes, I'm sure", modal_button1_style="primary",
+                                           modal_button1_text="Cancel", modal_button1_style="secondary", modal_button2_text="Restart",
                                            modal_button2_style="danger", modal_button2_name="restart-quiz", messages=chat_history)
                 else:
                     # Reset the chat history
