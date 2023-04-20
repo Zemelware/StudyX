@@ -1,9 +1,11 @@
-from datetime import timedelta
 import os
+from datetime import timedelta
 
 import openai
+import tiktoken
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for
+
 from flask_session import Session
 
 load_dotenv()
@@ -21,7 +23,7 @@ Session(app)
 
 chat_history = []
 
-# TODO: format backtick as inline code and triple backtick as code block
+# TODO: add login system with database
 
 
 def transcribe_audio(file):
@@ -31,66 +33,196 @@ def transcribe_audio(file):
 
 
 def transcript_to_notes(transcript, model):
-    # TODO: add support for notes with headings and stuff (maybe using markdown)
+    transcript_sections = split_transcript_into_sections(transcript, model)
 
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": "You are a note taker that takes notes based on a transcript from a school lecture.\
-                                           Make the notes concise but make sure you also get down all the important information.\
-                                           Also, keep in mind that the transcript may contain text from different people speaking.\
-                                           Don't type anything else but the notes."},
-            {"role": "user", "content": "I am going to give you a transcript to create notes for. Type 'Y' if you're ready."},
-            {"role": "assistant", "content": "Y"},
-            {"role": "user", "content": transcript}
-        ]
-    )
-    print(response)
-    notes = response["choices"][0]["message"]["content"]
-    # TODO: also check the finish reason to make sure its valid
+    notes = ""
+    if len(transcript_sections) == 1:
+        # Since the two models behave differently, they need to be pro-prompted differently
+        if model == "gpt-3.5-turbo":
+            messages = [
+                {"role": "system", "content": "You are a professional note taker that takes excellent notes."},
+                {"role": "user", "content": "I am going to give you a transcript from a lecture to create notes for. Create the notes in Markdown format. \
+Make sure all the important information is contained in the notes. \
+Keep in mind that the transcript may have picked up students talking. Just focus on the actual speaker. Type 'Y' if you're ready."},
+                {"role": "assistant", "content": "Y"},
+                {"role": "user", "content": transcript}
+            ]
+        elif model == "gpt-4":
+            messages = [
+                {"role": "system", "content": "You are a professional note taker that takes excellent notes based on a transcript from a school lecture. \
+Make sure all the important information is contained in the notes. \
+Keep in mind that the transcript may have picked up students talking. Just focus on the actual speaker."},
+                {"role": "user", "content": "I am going to give you a transcript to create notes for. Type 'Y' if you're ready."},
+                {"role": "assistant", "content": "Y"},
+                {"role": "user", "content": transcript}
+            ]
 
+        notes = gpt_api_call(messages, model)
+    else:
+        # If the transcript is split into multiple sections, the model must be prompted differently
+        for i, transcript_section in enumerate(transcript_sections):
+            print("Transcript section:", transcript_section,
+                  "\n------------------------\n")
+
+            # TODO: make more readable
+            if model == "gpt-3.5-turbo" and i == 0:
+                messages = [
+                    {"role": "system", "content": "You are a professional note taker that takes excellent notes."},
+                    {"role": "user", "content": f"I am going to give you a transcript from a lecture to create notes for. \
+The transcript is split into multiple parts. Right now I am giving you part #1. Create the notes in Markdown format. \
+Make sure all the important information is contained in the notes. \
+Keep in mind that the transcript may have picked up students talking. Just focus on the actual speaker. \
+Type 'Y' if you're ready to create the notes."},
+                    {"role": "assistant", "content": "Y"},
+                    {"role": "user", "content": transcript_section}
+                ]
+            elif model == "gpt-3.5-turbo":
+                # TODO: prompt better. Currently, the model re-writes the whole notes.
+
+                notes_after_last_heading = ""
+                # Split by newline characters to get individual lines
+                lines = notes.split("\n")
+                for i in range(1, 7):  # Cover all possible markdown heading levels
+                    heading_prefix = "#" * i
+                    for line in lines:
+                        if line.startswith(heading_prefix):
+                            # If the line starts with the heading prefix, update text_after_last_heading
+                            notes_after_last_heading = line
+                    if notes_after_last_heading:
+                        # If text_after_last_heading is updated, break out of the loop
+                        break
+
+                messages = [
+                    {"role": "system", "content": "You are a professional note taker that takes excellent notes."},
+                    {"role": "user", "content": f"I am going to give you a transcript from a lecture to create notes for. \
+The transcript is split into multiple parts. Right now I am giving you part #{i + 1}. Create the notes in Markdown format. \
+Make sure all the important information is contained in the notes. \
+Keep in mind that the transcript may have picked up students talking. Just focus on the actual speaker. \
+First I will give you the notes from the previous part(s) of the transcript then I will give you part #{i + 1} of the transcript. \
+Type 'Y' if you're ready for the notes."},
+                    {"role": "assistant", "content": "Y"},
+                    {"role": "user",
+                        "content": f"Here are the previous notes. Type 'R' once you've read them.\n{notes_after_last_heading}"},
+                    {"role": "assistant", "content": "R"},
+                    {"role": "user", "content": f"Here is part #{i + 1} of the transcript. Only reply with the notes. \
+                    Make sure to integrate them with my existing notes (but don't re-write the whole thing).\n{transcript_section}"}
+                ]
+            elif model == "gpt-4" and i == 0:
+                pass
+            elif model == "gpt-4":
+                pass
+
+            print("Messages:", messages, "\n")
+
+            notes += gpt_api_call(messages, model)
+
+            if i == 1:
+                break
+
+    print(repr(notes))
     return notes
+
+
+def split_transcript_into_sections(transcript, model):
+    """Splits the transcript into sections to get around the model token limit."""
+
+    # Token limits: 4,096 tokens for gpt-3.5-turbo and 8,192 tokens for gpt-4
+    if model == "gpt-3.5-turbo":
+        # This is the max number of tokens that are allowed per section.
+        # This number shouldn't be too close to the model token limit so there is room left for the model's response.
+        section_token_limit = 3000
+    elif model == "gpt-4":
+        section_token_limit = 6000
+
+    # Get the number of tokens in the transcript so it can be split properly into sections
+    enc = tiktoken.get_encoding("cl100k_base")
+    encoded_transcript = enc.encode(transcript)
+    transcript_token_count = len(encoded_transcript)
+
+    # After every section_token_limit number of tokens, split the transcript to create a new section
+    transcript_sections = []
+    text_after_last_period = ""
+    for i in range(0, transcript_token_count, section_token_limit):
+        if i + section_token_limit < transcript_token_count:
+            # Take the sentence fragment after the last sentence from the previous section and add it to the beginning of the next section
+            section = text_after_last_period + \
+                enc.decode(encoded_transcript[i:i + section_token_limit])
+
+            # Don't split in the middle of a sentence.
+            # Cut off the section at the last period before the section_token_limit,
+            # then save the sentence fragment after the last period in a variable to add to the beginning of the next section
+            section_ended_at_sentence = section.rsplit(".", 1)[0] + "."
+            text_after_last_period = section.rsplit(".", 1)[1]
+
+            # Add the section to the list
+            transcript_sections.append(section_ended_at_sentence)
+        else:
+            # If the last section is less than section_token_limit tokens, just add the rest of the transcript as the last section
+            section_until_end = text_after_last_period + \
+                enc.decode(encoded_transcript[i:])
+
+            transcript_sections.append(section_until_end)
+
+    return transcript_sections
+
+
+def gpt_api_call(messages, model):
+    response_json = openai.ChatCompletion.create(
+        model=model,
+        messages=messages
+    )
+    response_content = response_json["choices"][0]["message"]["content"]
+    finish_reason = response_json["choices"][0]["finish_reason"]
+    print("Response content:", response_content, "\n")
+
+    check_finish_reason(finish_reason)
+
+    return response_content
 
 
 def ai_chat_response(message_history, notes, model):
     # Make an API call to OpenAI to get the AI response
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": "You are a helpful tutor assistant. You will be given notes from a school lecture.\
-                                           You must quiz the user on the notes to make sure they understand the material.\
-                                           After the user answers a question, you must give them feedback on whether they got it right or wrong.\
-                                           If it's correct, write 'Correct!' and if it's wrong, write 'Wrong!' and explain why it's wrong.\
-                                           You can give hints if the user is struggling and you can also give them the answer only if they ask for it.\
-                                           You will continuously quiz the user until you've covered all the material"},
-            {"role": "user", "content": "I am going to give you a notes to quiz me on. Type 'Y' if you're ready."},
+
+    if model == "gpt-3.5-turbo":
+        messages = [
+            {"role": "system", "content": "You are a helpful and friendly tutor assistant that helps students learn material."},
+            {"role": "user", "content": "I'm going to give you notes to quiz me on. You must ask me questions one at a time to make sure I understand the material. \
+After I answer a question, let me know if got it right or wrong and explain the answer if I'm wrong, then ask the next question. \
+Feel free to ask me to expand on my answer if you feel it was missing information or only partly correct. You can give me hints if I'm struggling. Only give me the answer if I ask for it. \
+Continuously quiz me until you've covered all the material, at which point you will let me know that I've been quizzed on everything. Type 'Y' if you're ready for the notes."},
             {"role": "assistant", "content": "Y"},
-            {"role": "user", "content": notes},
+            {"role": "user", "content": "Here are the notes. Only reply with the first question.\n" + notes},
             *message_history
         ]
-    )
-    response_text = response["choices"][0]["message"]["content"]
-    finish_reason = response["choices"][0]["finish_reason"]
+    elif model == "gpt-4":
+        # TODO: Edit the system message here
+        messages = [
+            {"role": "system", "content": "You are a helpful and friendly tutor assistant. I will give you notes from a school lecture. \
+You must quiz me on the notes to make sure I understand the material. \
+After I answer a question, you must give me feedback on whether I got it right or wrong. \
+If it's correct, write 'Correct!' and if it's wrong, write 'Wrong!' and explain why it's wrong. \
+You can give hints if I'm struggling and you can also give me the answer only if I ask for it, but try to help me figure it out first. \
+You will continuously quiz me until you've covered all the material, at which point you will let me know that I've been quizzed on everything."},
+            {"role": "user", "content": "I am going to give you notes to quiz me on. Type 'Y' if you're ready."},
+            {"role": "assistant", "content": "Y"},
+            {"role": "user", "content": "Here are the notes. Don't reply with anything except the question.\n" + notes},
+            *message_history
+        ]
 
-    if finish_reason == "length":
-        # This means that the model reached its token limit
-        pass
-    elif finish_reason == "content_filter":
-        # This means that OpenAI blocked the message with their content filter
-        pass
+    ai_response = gpt_api_call(messages, model)
 
-    return response_text
+    return ai_response
 
 
 def check_finish_reason(finish_reason):
-    # TODO: add more stuff here
+    # TODO: create a visual message if the finish reason is any of these (maybe in the side menu)
 
     if finish_reason == "length":
         # This means that the model reached its token limit
-        pass
+        print("The model reached its token limit.")
     elif finish_reason == "content_filter":
         # This means that OpenAI blocked the message with their content filter
-        pass
+        print("The message contained content that was against OpenAI's policy.")
 
 
 @app.route("/")
@@ -166,6 +298,7 @@ def transcript():
 @app.route("/notes/", methods=["GET", "POST"])
 def notes():
     # TODO: when waiting for the model to respond, display a loading animation or write "Thinking..." or something
+
     # This is for the model selection dropdown
     selected_model = session.get("model-notes", "GPT-3.5")
 
@@ -175,7 +308,6 @@ def notes():
             selected_model = request.form["model-notes"]
             session["model-notes"] = selected_model
         else:
-            # Check if the user clicked the "Create notes" button
             notes = request.form.get("notes", "")
 
             # Check if the user clicked the "Create notes" button or confirmed that they want to overwrite the notes
