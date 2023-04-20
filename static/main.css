@@ -1,3 +1,10 @@
+/* Variables */
+:root {
+  --primary-colour: #7300ff;
+  --primary-colour-dark: #6100ea;
+}
+
+/* Size Styles */
 body {
   margin-top: 10px;
   margin-bottom: 10px;
@@ -11,11 +18,34 @@ body {
 .side-menu {
   margin-top: 58px;
 }
+/* ------------ */
 
-#chat-body {
-  overflow-y: auto;
+/* Bootstrap Style Modifications */
+.btn-primary {
+  background-color: var(--primary-colour);
+  border-color: var(--primary-colour);
 }
 
+.btn-primary:hover {
+  background-color: var(--primary-colour-dark);
+  border-color: var(--primary-colour-dark);
+}
+
+.btn-primary:active {
+  background-color: var(--primary-colour-dark) !important;
+}
+
+.form-check-input:checked {
+  background-color: var(--primary-colour);
+  border-color: var(--primary-colour);
+}
+
+.nav-pills .nav-link.active {
+  background-color: var(--primary-colour);
+}
+/* ------------ */
+
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
 }
@@ -26,11 +56,17 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #aaa;
+  background: #adadad;
 }
 
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
+}
+/* ------------ */
+
+/* Quiz Page */
+#chat-body {
+  overflow-y: auto;
 }
 
 #sample-responses .btn {
@@ -44,7 +80,9 @@ body {
 #sample-responses .btn:hover {
   background-color: #ddd;
 }
+/* ------------ */
 
+/* Messages */
 .user-message {
   background-color: #007bff;
   color: #fff;
@@ -64,7 +102,9 @@ body {
   white-space: pre-wrap;
   display: inline-block;
 }
+/* ------------ */
 
+/* Text areas */
 textarea {
   resize: none;
 }
@@ -77,7 +117,9 @@ textarea {
 textarea[name="message"] {
   max-height: 300px;
 }
+/* ------------ */
 
+/* Audio */
 audio {
   width: 100%;
 }
