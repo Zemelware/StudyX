@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import timedelta
 
 import openai
@@ -61,8 +62,8 @@ Keep in mind that the transcript may have picked up students talking. Just focus
     else:
         # If the transcript is split into multiple sections, the model must be prompted differently
         for i, transcript_section in enumerate(transcript_sections):
-            print("Transcript section:", transcript_section,
-                  "\n------------------------\n")
+            # print("Transcript section:", transcript_section,
+            #       "\n------------------------\n")
 
             # TODO: make more readable
             if model == "gpt-3.5-turbo" and i == 0:
@@ -79,6 +80,7 @@ Type 'Y' if you're ready to create the notes."},
             elif model == "gpt-3.5-turbo":
                 # TODO: prompt better. Currently, the model re-writes the whole notes.
 
+                """
                 notes_after_last_heading = ""
                 # Split by newline characters to get individual lines
                 lines = notes.split("\n")
@@ -91,6 +93,24 @@ Type 'Y' if you're ready to create the notes."},
                     if notes_after_last_heading:
                         # If text_after_last_heading is updated, break out of the loop
                         break
+                """
+
+                notes_after_last_heading = ""
+                # Split by newline characters to get individual lines
+                lines = notes.split("\n")
+                print("Lines:", lines)
+
+                # Loop through the lines in reverse order
+                for index, line in enumerate(reversed(lines)):
+                    # Check if the line starts with up to 6 hashes followed by a space
+                    if re.match(r"^#{1,6} ", line):
+                        # If the line starts with a heading prefix, update last_heading_index
+                        # Set notes_after_last_heading to every line after and including the last heading
+                        notes_after_last_heading = "\n".join(
+                            lines[-(index + 1):])
+                        break
+
+                print("Notes after last heading:\n" + notes_after_last_heading)
 
                 messages = [
                     {"role": "system", "content": "You are a professional note taker that takes excellent notes."},
@@ -101,25 +121,23 @@ Keep in mind that the transcript may have picked up students talking. Just focus
 First I will give you the notes from the previous part(s) of the transcript then I will give you part #{i + 1} of the transcript. \
 Type 'Y' if you're ready for the notes."},
                     {"role": "assistant", "content": "Y"},
-                    {"role": "user",
-                        "content": f"Here are the previous notes. Type 'R' once you've read them.\n{notes_after_last_heading}"},
+                    {"role": "user", "content": f"Here are the previous notes. Type 'R' once you've read them.\n{notes_after_last_heading}"},
                     {"role": "assistant", "content": "R"},
                     {"role": "user", "content": f"Here is part #{i + 1} of the transcript. Only reply with the notes. \
-                    Make sure to integrate them with my existing notes (but don't re-write the whole thing).\n{transcript_section}"}
+Make sure to integrate them with my existing notes (but don't re-write the whole thing).\n{transcript_section}"}
                 ]
             elif model == "gpt-4" and i == 0:
                 pass
             elif model == "gpt-4":
                 pass
 
-            print("Messages:", messages, "\n")
+            # print("Messages:", messages, "\n")
 
             notes += gpt_api_call(messages, model)
 
             if i == 1:
                 break
 
-    print(repr(notes))
     return notes
 
 
@@ -173,7 +191,7 @@ def gpt_api_call(messages, model):
     )
     response_content = response_json["choices"][0]["message"]["content"]
     finish_reason = response_json["choices"][0]["finish_reason"]
-    print("Response content:", response_content, "\n")
+    # print("Response content:", response_content, "\n")
 
     check_finish_reason(finish_reason)
 
@@ -452,4 +470,4 @@ def quiz():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
