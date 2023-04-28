@@ -243,6 +243,15 @@ def check_finish_reason(finish_reason):
         print("The message contained content that was against OpenAI's policy.")
 
 
+@app.route("/upload-audio", methods=["POST"])
+def upload_audio():
+    # Check where the audio is being send from (make sure it's being sent from the rasp pi)
+    audio = request.files["recording.wav"]
+    # Save the audio file to the session
+    session["recording.wav"] = audio
+    return "Success"
+
+
 @app.route("/")
 def index():
     return redirect(url_for("transcript"))
