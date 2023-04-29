@@ -2,7 +2,12 @@
 {% block content %}
   <div class="main-content col-8 d-flex flex-column">
     <h1>Transcript</h1>
-    <audio src="" controls class="mb-2"></audio>
+    <audio
+      src="{{ url_for('static', filename='recording.wav') }}"
+      type="audio/wav"
+      controls
+      class="mb-2"
+    ></audio>
     <form
       method="POST"
       id="transcript-form"

@@ -12,6 +12,7 @@ from flask_session import Session
 load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
+client_api_key = os.getenv("CLIENT_API_KEY")
 
 app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
@@ -245,11 +246,20 @@ def check_finish_reason(finish_reason):
 
 @app.route("/upload-audio", methods=["POST"])
 def upload_audio():
-    # Check where the audio is being send from (make sure it's being sent from the rasp pi)
-    audio = request.files["recording.wav"]
-    # Save the audio file to the session
-    session["recording.wav"] = audio
-    return "Success"
+    api_key = request.headers["api-key"]
+
+    # Use an API key so everyone isn't able to send audio files to the server
+    if api_key != client_api_key:
+        print("Invalid API key")
+        return "Invalid API key", 401
+
+    audio_file = request.files["recording"]
+    global audio_file_path
+    audio_file_path = "./static/recording.wav"
+    audio_file.save(audio_file_path)
+
+    # TODO: currently doesn't refresh the page. Figure out how to have the audio show up right away and not have to manually refresh the page (maybe use HTMX or AJAX)
+    return "Audio uploaded successfully"
 
 
 @app.route("/")
@@ -270,9 +280,14 @@ def transcript():
             transcript = request.form.get("transcript", "")
 
             if "create-transcript" in request.form or "overwrite-transcript" in request.form:
-                # TODO: figure out how to retrieve audio
-                audio = "."
-                if audio == "":
+                audio_file = ""
+                if audio_file_path != "":
+                    with open(audio_file_path, "rb") as f:
+                        audio_file = f
+
+                # TODO: delete the audio file after it's been transcribed (or maybe keep all the audio files in a folder)
+
+                if audio_file == "":
                     # Show an error if there's no audio loaded when the user clicks "Create transcript"
                     session["no_audio_modal"] = True
                 elif transcript.strip() != "" and not "overwrite-transcript" in request.form:
@@ -282,7 +297,7 @@ def transcript():
                 elif test_mode_enabled:
                     transcript = "This is a test transcript."
                 else:
-                    transcript = transcribe_audio(audio)
+                    transcript = transcribe_audio(audio_file)
 
             session["transcript"] = transcript
 
