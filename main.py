@@ -52,6 +52,7 @@ Keep in mind that the transcript may have picked up students talking. Just focus
         elif model == "gpt-4":
             messages = [
                 {"role": "system", "content": "You are a professional note taker that takes excellent notes based on a transcript from a school lecture. \
+You always take notes in Markdown format. \
 Make sure all the important information is contained in the notes. \
 Keep in mind that the transcript may have picked up students talking. Just focus on the actual speaker."},
                 {"role": "user", "content": "I am going to give you a transcript to create notes for. Type 'Y' if you're ready."},
@@ -63,8 +64,6 @@ Keep in mind that the transcript may have picked up students talking. Just focus
     else:
         # If the transcript is split into multiple sections, the model must be prompted differently
         for i, transcript_section in enumerate(transcript_sections):
-            # print("Transcript section:", transcript_section,
-            #       "\n------------------------\n")
 
             # TODO: make more readable
             if model == "gpt-3.5-turbo" and i == 0:
@@ -81,25 +80,9 @@ Type 'Y' if you're ready to create the notes."},
             elif model == "gpt-3.5-turbo":
                 # TODO: prompt better. Currently, the model re-writes the whole notes.
 
-                """
                 notes_after_last_heading = ""
                 # Split by newline characters to get individual lines
                 lines = notes.split("\n")
-                for i in range(1, 7):  # Cover all possible markdown heading levels
-                    heading_prefix = "#" * i
-                    for line in lines:
-                        if line.startswith(heading_prefix):
-                            # If the line starts with the heading prefix, update text_after_last_heading
-                            notes_after_last_heading = line
-                    if notes_after_last_heading:
-                        # If text_after_last_heading is updated, break out of the loop
-                        break
-                """
-
-                notes_after_last_heading = ""
-                # Split by newline characters to get individual lines
-                lines = notes.split("\n")
-                print("Lines:", lines)
 
                 # Loop through the lines in reverse order
                 for index, line in enumerate(reversed(lines)):
@@ -111,7 +94,8 @@ Type 'Y' if you're ready to create the notes."},
                             lines[-(index + 1):])
                         break
 
-                print("Notes after last heading:\n" + notes_after_last_heading)
+                print("Notes after last heading:\n" +
+                      notes_after_last_heading + "\n")
 
                 messages = [
                     {"role": "system", "content": "You are a professional note taker that takes excellent notes."},
@@ -119,25 +103,27 @@ Type 'Y' if you're ready to create the notes."},
 The transcript is split into multiple parts. Right now I am giving you part #{i + 1}. Create the notes in Markdown format. \
 Make sure all the important information is contained in the notes. \
 Keep in mind that the transcript may have picked up students talking. Just focus on the actual speaker. \
-First I will give you the notes from the previous part(s) of the transcript then I will give you part #{i + 1} of the transcript. \
-Type 'Y' if you're ready for the notes."},
+First I will give you the last section of notes from the previous part of the transcript then I will give you part #{i + 1} of the transcript. \
+Type 'Y' if you're ready for the previous notes."},
                     {"role": "assistant", "content": "Y"},
-                    {"role": "user", "content": f"Here are the previous notes. Type 'R' once you've read them.\n{notes_after_last_heading}"},
+                    {"role": "user", "content": f"Here's the previous section of notes. Type 'R' once you've read them.\n\n{notes_after_last_heading}"},
                     {"role": "assistant", "content": "R"},
-                    {"role": "user", "content": f"Here is part #{i + 1} of the transcript. Only reply with the notes. \
-Make sure to integrate them with my existing notes (but don't re-write the whole thing).\n{transcript_section}"}
+                    {"role": "user", "content": f"Here is part #{i + 1} of the transcript. Only reply with the notes for this part of the transcript. \
+Make sure to seamlessly integrate the notes you create with my previous notes and also create the necessary headings. \
+Important: do NOT re-write my previous notes and do NOT re-write the title of the notes with something like 'Cont'd', just write the new notes.\n\n\
+Now here is part #{i + 1} of the transcript:\n\n{transcript_section}"}
                 ]
             elif model == "gpt-4" and i == 0:
                 pass
             elif model == "gpt-4":
                 pass
 
-            # print("Messages:", messages, "\n")
+            # Add a newline character before the response (to ensure the markdown appears as a heading) if it's not the first response
+            response_prefix = "" if i == 0 else "\n\n"
 
-            notes += gpt_api_call(messages, model)
+            print("Messages:", messages, "\n")
 
-            if i == 1:
-                break
+            notes += response_prefix + gpt_api_call(messages, model)
 
     return notes
 
@@ -185,20 +171,6 @@ def split_transcript_into_sections(transcript, model):
     return transcript_sections
 
 
-def gpt_api_call(messages, model):
-    response_json = openai.ChatCompletion.create(
-        model=model,
-        messages=messages
-    )
-    response_content = response_json["choices"][0]["message"]["content"]
-    finish_reason = response_json["choices"][0]["finish_reason"]
-    # print("Response content:", response_content, "\n")
-
-    check_finish_reason(finish_reason)
-
-    return response_content
-
-
 def ai_chat_response(message_history, notes, model):
     # Make an API call to OpenAI to get the AI response
 
@@ -231,6 +203,22 @@ You will continuously quiz me until you've covered all the material, at which po
     ai_response = gpt_api_call(messages, model)
 
     return ai_response
+
+
+def gpt_api_call(messages, model):
+    # TODO: optimize temperature value
+    response_json = openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+        temperature=0.4
+    )
+    response_content = response_json["choices"][0]["message"]["content"]
+    finish_reason = response_json["choices"][0]["finish_reason"]
+    print("Response content:\n", response_content, "\n")
+
+    check_finish_reason(finish_reason)
+
+    return response_content
 
 
 def check_finish_reason(finish_reason):
