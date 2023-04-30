@@ -6,8 +6,8 @@ import openai
 import tiktoken
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for
-
 from flask_session import Session
+from flask_sqlalchemy import SQLAlchemy
 
 load_dotenv()
 
@@ -15,9 +15,14 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 client_api_key = os.getenv("CLIENT_API_KEY")
 
 app = Flask(__name__)
-app.config["SESSION_PERMANENT"] = False
-app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
-app.config["SESSION_TYPE"] = "filesystem"
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///session.db"
+db = SQLAlchemy(app)
+
+# app.config["SESSION_PERMANENT"] = False
+# app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
+app.config["SESSION_TYPE"] = "sqlalchemy"
+app.config["SESSION_SQLALCHEMY"] = db
 app.config["SECRET_KEY"] = os.urandom(24)
 app.config.from_object(__name__)
 
@@ -113,6 +118,7 @@ Make sure to seamlessly integrate the notes you create with my previous notes an
 Important: do NOT re-write my previous notes and do NOT re-write the title of the notes with something like 'Cont'd', just write the new notes.\n\n\
 Now here is part #{i + 1} of the transcript:\n\n{transcript_section}"}
                 ]
+            # TODO: stop the model from re-writing the title of the notes
             elif model == "gpt-4" and i == 0:
                 pass
             elif model == "gpt-4":
