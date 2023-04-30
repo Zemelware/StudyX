@@ -16,7 +16,7 @@ client_api_key = os.getenv("CLIENT_API_KEY")
 
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///session.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/session.db"
 db = SQLAlchemy(app)
 
 # app.config["SESSION_PERMANENT"] = False
