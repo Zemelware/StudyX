@@ -109,18 +109,31 @@ The transcript is split into multiple parts. Right now I am giving you part #{i 
 Make sure all the important information is contained in the notes. \
 Keep in mind that the transcript may have picked up students talking. Just focus on the actual speaker. \
 First I will give you the last section of notes from the previous part of the transcript then I will give you part #{i + 1} of the transcript. \
+IMPORTANT: Only write the notes for the given part do NOT write the entirety of the notes  \
 Type 'Y' if you're ready for the previous notes."},
                     {"role": "assistant", "content": "Y"},
                     {"role": "user", "content": f"Here's the previous section of notes. Type 'R' once you've read them.\n\n{notes_after_last_heading}"},
                     {"role": "assistant", "content": "R"},
                     {"role": "user", "content": f"Here is part #{i + 1} of the transcript. Only reply with the notes for this part of the transcript. \
 Make sure to seamlessly integrate the notes you create with my previous notes and also create the necessary headings. \
-Important: do NOT re-write my previous notes and do NOT re-write the title of the notes with something like 'Cont'd', just write the new notes.\n\n\
+Important: do NOT re-write my previous notes and do NOT re-write the title of the notes with something like 'Cont'd' or anything else, ONLY write the new notes.\n\n\
 Now here is part #{i + 1} of the transcript:\n\n{transcript_section}"}
                 ]
             # TODO: stop the model from re-writing the title of the notes
             elif model == "gpt-4" and i == 0:
-                pass
+                 messages = [
+                {"role": "system", "content": "You are a professional note taker that takes excellent notes based on a transcript from a school lecture. \
+You always take notes in Markdown format. \
+Make sure all the important information is contained in the notes. \
+Keep in mind that the transcript may have picked up students talking. Just focus on the actual speaker."},
+                {"role": "user", "content": f"I am going to give you a transcript from a lecture to create notes for. \
+The transcript is split into multiple parts. Right now I am giving you part #1. \
+Make sure all the important information is contained in the notes. \
+Keep in mind that the transcript may have picked up students talking. Just focus on the actual speaker. \
+Type 'Y' if you're ready to create the notes."},
+                {"role": "assistant", "content": "Y"},
+                {"role": "user", "content": transcript_section}
+            ]
             elif model == "gpt-4":
                 pass
 
