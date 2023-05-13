@@ -6,8 +6,9 @@ import openai
 import tiktoken
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for
+from openai.error import RateLimitError
+
 from flask_session import Session
-from flask_sqlalchemy import SQLAlchemy
 
 load_dotenv()
 
@@ -16,21 +17,15 @@ client_api_key = os.getenv("CLIENT_API_KEY")
 
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/session.db"
-db = SQLAlchemy(app)
-
-# app.config["SESSION_PERMANENT"] = False
-# app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
-app.config["SESSION_TYPE"] = "sqlalchemy"
-app.config["SESSION_SQLALCHEMY"] = db
+app.config["SESSION_PERMANENT"] = False
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
+app.config["SESSION_TYPE"] = "filesystem"
 app.config["SECRET_KEY"] = os.urandom(24)
 app.config.from_object(__name__)
 
 Session(app)
 
 chat_history = []
-
-# TODO: add login system with database
 
 
 def transcribe_audio(file):
@@ -225,12 +220,16 @@ You will continuously quiz me until you've covered all the material, at which po
 
 
 def gpt_api_call(messages, model):
-    # TODO: optimize temperature value
-    response_json = openai.ChatCompletion.create(
-        model=model,
-        messages=messages,
-        temperature=0.4
-    )
+    try:
+        response_json = openai.ChatCompletion.create(
+            model=model,
+            messages=messages,
+            temperature=0.4
+        )
+    except RateLimitError:
+        print(
+            "The server is experiencing a high volume of requests. Please try again later.")
+
     response_content = response_json["choices"][0]["message"]["content"]
     finish_reason = response_json["choices"][0]["finish_reason"]
     print("Response content:\n", response_content, "\n")
