@@ -116,19 +116,19 @@ Now here is part #{i + 1} of the transcript:\n\n{transcript_section}"}
                 ]
             # TODO: stop the model from re-writing the title of the notes
             elif model == "gpt-4" and i == 0:
-                 messages = [
-                {"role": "system", "content": "You are a professional note taker that takes excellent notes based on a transcript from a school lecture. \
+                messages = [
+                    {"role": "system", "content": "You are a professional note taker that takes excellent notes based on a transcript from a school lecture. \
 You always take notes in Markdown format. \
 Make sure all the important information is contained in the notes. \
 Keep in mind that the transcript may have picked up students talking. Just focus on the actual speaker."},
-                {"role": "user", "content": f"I am going to give you a transcript from a lecture to create notes for. \
+                    {"role": "user", "content": f"I am going to give you a transcript from a lecture to create notes for. \
 The transcript is split into multiple parts. Right now I am giving you part #1. \
 Make sure all the important information is contained in the notes. \
 Keep in mind that the transcript may have picked up students talking. Just focus on the actual speaker. \
 Type 'Y' if you're ready to create the notes."},
-                {"role": "assistant", "content": "Y"},
-                {"role": "user", "content": transcript_section}
-            ]
+                    {"role": "assistant", "content": "Y"},
+                    {"role": "user", "content": transcript_section}
+                ]
             elif model == "gpt-4":
                 pass
 
