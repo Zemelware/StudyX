@@ -1,6 +1,6 @@
 .env
 .DS_Store
-recording_og.wav
+recording.wav
 env/
 __pycache__/
 flask_session/
