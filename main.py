@@ -3,7 +3,7 @@ import re
 from datetime import timedelta
 
 import openai
-import tiktoken
+# import tiktoken
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for
 from openai.error import RateLimitError
@@ -28,14 +28,17 @@ Session(app)
 chat_history = []
 
 
-def transcribe_audio(file):
+def transcribe_audio(file_path):
     transcript = openai.Audio.transcribe(
-        "whisper-1", file, prompt="The transcript is a school lecture.", response_format="text")
+        "whisper-1", file_path, prompt="The transcript is a school lecture.", response_format="text")
     return transcript
 
 
 def transcript_to_notes(transcript, model):
-    transcript_sections = split_transcript_into_sections(transcript, model)
+    # transcript_sections = split_transcript_into_sections(transcript, model)
+    # Tiktoken currently doesn't work with Raspberry Pi, so we can't use the feature that splits the transcript into sections.
+    # Thus, the variable below will just contain one empty item as a workaround.
+    transcript_sections = [""]
 
     notes = ""
     if len(transcript_sections) == 1:
@@ -261,7 +264,7 @@ def upload_audio():
 
     audio_file = request.files["recording"]
     global audio_file_path
-    audio_file_path = "./static/recording.wav"
+    audio_file_path = "./static/recording.mp3"
     audio_file.save(audio_file_path)
 
     # TODO: currently doesn't refresh the page. Figure out how to have the audio show up right away and not have to manually refresh the page (maybe use HTMX or AJAX)
@@ -286,12 +289,12 @@ def transcript():
             transcript = request.form.get("transcript", "")
 
             if "create-transcript" in request.form or "overwrite-transcript" in request.form:
-                audio_file = ""
-                if audio_file_path != "":
-                    with open(audio_file_path, "rb") as f:
-                        audio_file = f
-
-                # TODO: delete the audio file after it's been transcribed (or maybe keep all the audio files in a folder)
+                audio_file_path = "./static/recording.mp3"
+                # if audio_file_path != "":
+                try:
+                     audio_file = open(audio_file_path, "rb")
+                except FileNotFoundError:
+                    audio_file = ""
 
                 if audio_file == "":
                     # Show an error if there's no audio loaded when the user clicks "Create transcript"
@@ -304,6 +307,7 @@ def transcript():
                     transcript = "This is a test transcript."
                 else:
                     transcript = transcribe_audio(audio_file)
+                    audio_file.close()
 
             session["transcript"] = transcript
 
