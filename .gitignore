@@ -1,7 +1,10 @@
 .env
 .DS_Store
 recording.wav
+server_error.log
+record_error.log
 env/
 __pycache__/
 flask_session/
 instance/
+statis/recording.mp3
