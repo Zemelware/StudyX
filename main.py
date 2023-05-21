@@ -3,7 +3,7 @@ import re
 from datetime import timedelta
 
 import openai
-# import tiktoken
+import tiktoken
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, request, session, url_for
 from openai.error import RateLimitError
@@ -35,10 +35,7 @@ def transcribe_audio(file_path):
 
 
 def transcript_to_notes(transcript, model):
-    # transcript_sections = split_transcript_into_sections(transcript, model)
-    # Tiktoken currently doesn't work with Raspberry Pi, so we can't use the feature that splits the transcript into sections.
-    # Thus, the variable below will just contain one empty item as a workaround.
-    transcript_sections = [""]
+    transcript_sections = split_transcript_into_sections(transcript, model)
 
     notes = ""
     if len(transcript_sections) == 1:
@@ -504,4 +501,4 @@ def quiz():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5001)
+    app.run(debug=True, port=5001)
