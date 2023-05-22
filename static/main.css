@@ -64,6 +64,12 @@ body {
 }
 /* ------------ */
 
+/* Transcript Page */
+#record-button {
+  margin-left: 15px;
+}
+/* ------------ */
+
 /* Quiz Page */
 #chat-body {
   overflow-y: auto;
@@ -120,6 +126,6 @@ textarea[name="message"] {
 /* ------------ */
 
 /* Audio */
-audio {
+/* audio {
   width: 100%;
-}
+} */
